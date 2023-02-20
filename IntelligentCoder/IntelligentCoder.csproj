@@ -34,7 +34,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<None Include="..\IntelligentCoder.AsyncMethod\tools\*.ps1" PackagePath="tools" Pack="true" Visible="false" />
-		<None Include="..\IntelligentCoder.AsyncMethod\bin\$(Configuration)\netstandard2.0\TouchSocket.SourceGenerator.Rpc.dll" PackagePath="analyzers\dotnet\cs" Pack="true" Visible="false" />
+		<None Include="..\IntelligentCoder.SourceGenerator\tools\*.ps1" PackagePath="tools" Pack="true" Visible="false" />
+		<None Include="..\IntelligentCoder.SourceGenerator\bin\$(Configuration)\netstandard2.0\IntelligentCoder.SourceGenerator.dll" PackagePath="analyzers\dotnet\cs" Pack="true" Visible="false" />
 	</ItemGroup>
 </Project>

@@ -8,15 +8,15 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace TouchSocket.SourceGenerator.Rpc
+namespace IntelligentCoder.SourceGenerator
 {
     /// <summary>
     /// RpcApi语法接收器
     /// </summary>
-    sealed class RpcSyntaxReceiver : ISyntaxReceiver
+    sealed class AsyncMethodReceiver : ISyntaxReceiver
     {
-        public const string GeneratorRpcProxyAttributeTypeName = "TouchSocket.Rpc.GeneratorRpcProxyAttribute";
-        public const string RpcMethodAttributeTypeName = "TouchSocket.Rpc.GeneratorRpcMethodAttribute";
+        public const string GeneratorRpcProxyAttributeTypeName = "GeneratorRpcProxyAttribute";
+        public const string RpcMethodAttributeTypeName = "GeneratorRpcMethodAttribute";
 
         /// <summary>
         /// 接口列表
@@ -31,18 +31,18 @@ namespace TouchSocket.SourceGenerator.Rpc
         {
             if (syntaxNode is InterfaceDeclarationSyntax syntax)
             {
-                this.interfaceSyntaxList.Add(syntax);
+                interfaceSyntaxList.Add(syntax);
             }
         }
 
         public static INamedTypeSymbol GeneratorRpcProxyAttribute { get; private set; }
 
         /// <summary>
-        /// 获取所有RpcApi符号
+        /// 获取所有符号
         /// </summary>
         /// <param name="compilation"></param>
         /// <returns></returns>
-        public IEnumerable<INamedTypeSymbol> GetRpcApiTypes(Compilation compilation)
+        public IEnumerable<INamedTypeSymbol> GetTypes(Compilation compilation)
         {
             //Debugger.Launch();
             GeneratorRpcProxyAttribute = compilation.GetTypeByMetadataName(GeneratorRpcProxyAttributeTypeName);
@@ -50,7 +50,7 @@ namespace TouchSocket.SourceGenerator.Rpc
             {
                 yield break;
             }
-            foreach (var interfaceSyntax in this.interfaceSyntaxList)
+            foreach (var interfaceSyntax in interfaceSyntaxList)
             {
                 var @interface = compilation.GetSemanticModel(interfaceSyntax.SyntaxTree).GetDeclaredSymbol(interfaceSyntax);
                 if (@interface != null && IsRpcApiInterface(@interface))
@@ -62,7 +62,7 @@ namespace TouchSocket.SourceGenerator.Rpc
 
 
         /// <summary>
-        /// 是否为Rpc接口
+        /// 是否为接口
         /// </summary>
         /// <param name="interface"></param>
         /// <returns></returns>
@@ -79,18 +79,7 @@ namespace TouchSocket.SourceGenerator.Rpc
                 {
                     return false;
                 }
-                string s = GeneratorRpcProxyAttribute.ContainingAssembly.Name;
-                if (s != "TouchSocketPro")
-                {
-                    return false;
-                }
-                //string key =  BitConverter.ToString(generatorRpcProxyAttribute.ContainingAssembly.Identity.PublicKeyToken.ToArray()).Replace("-", "")
-                //.ToLower();
-                //if (key != "efaad12a6cf1b696")
-                //{
-                //    return false;
-                //}
-
+              
                 return true;
             }) is not null;
         }

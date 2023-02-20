@@ -7,12 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TouchSocket.SourceGenerator.Rpc
+namespace IntelligentCoder.SourceGenerator
 {
     /// <summary>
     /// RpcApi代码构建器
     /// </summary>
-    internal sealed class RpcCodeBuilder
+    internal sealed class AsyncMethodCodeBuilder
     {
         /// <summary>
         /// 接口符号
@@ -25,20 +25,20 @@ namespace TouchSocket.SourceGenerator.Rpc
         /// RpcApi代码构建器
         /// </summary>
         /// <param name="rpcApi"></param>
-        public RpcCodeBuilder(INamedTypeSymbol rpcApi)
+        public AsyncMethodCodeBuilder(INamedTypeSymbol rpcApi)
         {
-            this.m_rpcApi = rpcApi;
-            AttributeData attributeData = rpcApi.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == RpcSyntaxReceiver.GeneratorRpcProxyAttributeTypeName);
+            m_rpcApi = rpcApi;
+            AttributeData attributeData = rpcApi.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.GeneratorRpcProxyAttributeTypeName);
 
             m_rpcApiNamedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
 
             if (m_rpcApiNamedArguments.TryGetValue("Prefix", out var typedConstant))
             {
-                this.Prefix = typedConstant.Value.ToString();
+                Prefix = typedConstant.Value.ToString();
             }
             else
             {
-                this.Prefix = this.m_rpcApi.ToDisplayString();
+                Prefix = m_rpcApi.ToDisplayString();
             }
         }
 
@@ -55,16 +55,13 @@ namespace TouchSocket.SourceGenerator.Rpc
             {
                 yield return "using System;";
                 yield return "using System.Diagnostics;";
-                yield return "using TouchSocket.Core;";
-                yield return "using TouchSocket.Sockets;";
-                yield return "using TouchSocket.Rpc;";
                 yield return "using System.Threading.Tasks;";
             }
         }
 
         public string GetFileName()
         {
-            return this.m_rpcApi.ToDisplayString() + "Generator";
+            return m_rpcApi.ToDisplayString() + "Generator";
         }
 
         /// <summary>
@@ -73,7 +70,7 @@ namespace TouchSocket.SourceGenerator.Rpc
         /// <returns></returns>
         public SourceText ToSourceText()
         {
-            var code = this.ToString();
+            var code = ToString();
             return SourceText.From(code, Encoding.UTF8);
         }
 
@@ -84,19 +81,19 @@ namespace TouchSocket.SourceGenerator.Rpc
         public override string ToString()
         {
             var builder = new StringBuilder();
-            foreach (var item in this.Usings)
+            foreach (var item in Usings)
             {
                 builder.AppendLine(item);
             }
             builder.AppendLine($"namespace {GetNamespace()}");
             builder.AppendLine("{");
 
-            if (this.AllowAsync( CodeGeneratorFlag.InterfaceSync)|| this.AllowAsync(CodeGeneratorFlag.InterfaceAsync))
+            if (AllowAsync(CodeGeneratorFlag.InterfaceSync) || AllowAsync(CodeGeneratorFlag.InterfaceAsync))
             {
                 BuildIntereface(builder);
             }
 
-            if (this.AllowAsync(CodeGeneratorFlag.ExtensionSync) || this.AllowAsync(CodeGeneratorFlag.ExtensionAsync))
+            if (AllowAsync(CodeGeneratorFlag.ExtensionSync) || AllowAsync(CodeGeneratorFlag.ExtensionAsync))
             {
                 BuildMethod(builder);
             }
@@ -113,18 +110,18 @@ namespace TouchSocket.SourceGenerator.Rpc
         /// <returns></returns>
         private IEnumerable<IMethodSymbol> FindApiMethods()
         {
-            return this.m_rpcApi
+            return m_rpcApi
                 .GetMembers()
                 .OfType<IMethodSymbol>();
         }
 
-        private bool AllowAsync(CodeGeneratorFlag flag,IMethodSymbol method=default, Dictionary<string, TypedConstant> namedArguments=default)
+        private bool AllowAsync(CodeGeneratorFlag flag, IMethodSymbol method = default, Dictionary<string, TypedConstant> namedArguments = default)
         {
-            if (method!=null&& method.Name.EndsWith("Async"))
+            if (method != null && method.Name.EndsWith("Async"))
             {
                 return true;
             }
-            if (namedArguments!=null&& namedArguments.TryGetValue("GeneratorFlag", out var typedConstant))
+            if (namedArguments != null && namedArguments.TryGetValue("GeneratorFlag", out var typedConstant))
             {
                 return ((CodeGeneratorFlag)typedConstant.Value).HasFlag(flag);
             }
@@ -154,7 +151,7 @@ namespace TouchSocket.SourceGenerator.Rpc
 
         private bool IsInheritedInterface()
         {
-             if (m_rpcApiNamedArguments.TryGetValue("InheritedInterface", out var typedConstant))
+            if (m_rpcApiNamedArguments.TryGetValue("InheritedInterface", out var typedConstant))
             {
                 return typedConstant.Value is bool value && value;
             }
@@ -167,33 +164,33 @@ namespace TouchSocket.SourceGenerator.Rpc
             var interfaceNames = new List<string>();
             if (IsInheritedInterface())
             {
-                var interfaceNames1 = this.m_rpcApi.Interfaces
-               .Where(a => RpcSyntaxReceiver.IsRpcApiInterface(a))
-               .Select(a => $"I{new RpcCodeBuilder(a).GetClassName()}");
+                var interfaceNames1 = m_rpcApi.Interfaces
+               .Where(a => AsyncMethodReceiver.IsRpcApiInterface(a))
+               .Select(a => $"I{new AsyncMethodCodeBuilder(a).GetClassName()}");
 
-                var interfaceNames2 = this.m_rpcApi.Interfaces
-                   .Where(a => !RpcSyntaxReceiver.IsRpcApiInterface(a))
+                var interfaceNames2 = m_rpcApi.Interfaces
+                   .Where(a => !AsyncMethodReceiver.IsRpcApiInterface(a))
                    .Select(a => a.ToDisplayString());
 
                 interfaceNames.AddRange(interfaceNames1);
                 interfaceNames.AddRange(interfaceNames2);
             }
-          
+
             if (interfaceNames.Count == 0)
             {
-                builder.AppendLine($"public interface I{this.GetClassName()}");
+                builder.AppendLine($"public interface I{GetClassName()}");
             }
             else
             {
-                builder.AppendLine($"public interface I{this.GetClassName()} :{string.Join(",", interfaceNames)}");
+                builder.AppendLine($"public interface I{GetClassName()} :{string.Join(",", interfaceNames)}");
             }
-            
+
             builder.AppendLine("{");
             //Debugger.Launch();
 
             foreach (var method in FindApiMethods())
             {
-                var methodCode = this.BuildMethodInterface(method);
+                var methodCode = BuildMethodInterface(method);
                 builder.AppendLine(methodCode);
             }
 
@@ -202,13 +199,13 @@ namespace TouchSocket.SourceGenerator.Rpc
 
         private void BuildMethod(StringBuilder builder)
         {
-            builder.AppendLine($"public static class {this.GetClassName()}Extensions");
+            builder.AppendLine($"public static class {GetClassName()}Extensions");
             builder.AppendLine("{");
             //Debugger.Launch();
 
             foreach (var method in FindApiMethods())
             {
-                var methodCode = this.BuildMethod(method);
+                var methodCode = BuildMethod(method);
                 builder.AppendLine(methodCode);
             }
 
@@ -218,7 +215,7 @@ namespace TouchSocket.SourceGenerator.Rpc
         private string BuildMethod(IMethodSymbol method)
         {
             //Debugger.Launch();
-            var attributeData = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == RpcSyntaxReceiver.RpcMethodAttributeTypeName);
+            var attributeData = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.RpcMethodAttributeTypeName);
             if (attributeData is null)
             {
                 return string.Empty;
@@ -230,11 +227,11 @@ namespace TouchSocket.SourceGenerator.Rpc
 
             var invokeKey = GetInvokeKey(method, namedArguments);
             var methodName = GetMethodName(method, namedArguments);
-            var genericConstraintTypes = this.GetGenericConstraintTypes(method, namedArguments);
-            var isIncludeCallContext = this.IsIncludeCallContext(method, namedArguments);
-            var allowSync = this.AllowSync( CodeGeneratorFlag.ExtensionSync,method, namedArguments);
-            var allowAsync = this.AllowAsync(CodeGeneratorFlag.ExtensionAsync,method, namedArguments);
-            var returnType = this.GetReturnType(method, namedArguments);
+            var genericConstraintTypes = GetGenericConstraintTypes(method, namedArguments);
+            var isIncludeCallContext = IsIncludeCallContext(method, namedArguments);
+            var allowSync = AllowSync(CodeGeneratorFlag.ExtensionSync, method, namedArguments);
+            var allowAsync = AllowAsync(CodeGeneratorFlag.ExtensionAsync, method, namedArguments);
+            var returnType = GetReturnType(method, namedArguments);
 
             var parameters = method.Parameters;
             if (isIncludeCallContext)
@@ -505,7 +502,7 @@ namespace TouchSocket.SourceGenerator.Rpc
         private string BuildMethodInterface(IMethodSymbol method)
         {
             //Debugger.Launch();
-            var attributeData = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == RpcSyntaxReceiver.RpcMethodAttributeTypeName);
+            var attributeData = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.RpcMethodAttributeTypeName);
             if (attributeData is null)
             {
                 return string.Empty;
@@ -517,11 +514,11 @@ namespace TouchSocket.SourceGenerator.Rpc
 
             var invokeKey = GetInvokeKey(method, namedArguments);
             var methodName = GetMethodName(method, namedArguments);
-            var genericConstraintTypes = this.GetGenericConstraintTypes(method, namedArguments);
-            var isIncludeCallContext = this.IsIncludeCallContext(method, namedArguments);
-            var allowSync = this.AllowSync(CodeGeneratorFlag.InterfaceSync, method, namedArguments);
-            var allowAsync = this.AllowAsync(CodeGeneratorFlag.InterfaceAsync,method, namedArguments);
-            var returnType = this.GetReturnType(method, namedArguments);
+            var genericConstraintTypes = GetGenericConstraintTypes(method, namedArguments);
+            var isIncludeCallContext = IsIncludeCallContext(method, namedArguments);
+            var allowSync = AllowSync(CodeGeneratorFlag.InterfaceSync, method, namedArguments);
+            var allowAsync = AllowAsync(CodeGeneratorFlag.InterfaceAsync, method, namedArguments);
+            var returnType = GetReturnType(method, namedArguments);
 
             var parameters = method.Parameters;
             if (isIncludeCallContext)
@@ -604,11 +601,11 @@ namespace TouchSocket.SourceGenerator.Rpc
             {
                 return typedConstant.Value?.ToString();
             }
-            else if (this.m_rpcApi.Name.StartsWith("I"))
+            else if (m_rpcApi.Name.StartsWith("I"))
             {
-                return this.m_rpcApi.Name.Remove(0, 1);
+                return m_rpcApi.Name.Remove(0, 1);
             }
-            return this.m_rpcApi.Name;
+            return m_rpcApi.Name;
         }
 
         private string GetDescription(IMethodSymbol method)
@@ -658,13 +655,13 @@ namespace TouchSocket.SourceGenerator.Rpc
             {
                 return typedConstant.Value?.ToString() ?? string.Empty;
             }
-            else if (namedArguments.TryGetValue("MethodInvoke", out typedConstant) && (typedConstant.Value is bool b && b))
+            else if (namedArguments.TryGetValue("MethodInvoke", out typedConstant) && typedConstant.Value is bool b && b)
             {
-                return this.GetMethodName(method, namedArguments);
+                return GetMethodName(method, namedArguments);
             }
-            else if (m_rpcApiNamedArguments.TryGetValue("MethodInvoke", out typedConstant) && (typedConstant.Value is bool c && c))
+            else if (m_rpcApiNamedArguments.TryGetValue("MethodInvoke", out typedConstant) && typedConstant.Value is bool c && c)
             {
-                return this.GetMethodName(method, namedArguments);
+                return GetMethodName(method, namedArguments);
             }
             else
             {
@@ -737,80 +734,13 @@ namespace TouchSocket.SourceGenerator.Rpc
         {
             if (namedArguments.TryGetValue("MethodFlags", out var typedConstant))
             {
-                return typedConstant.Value is int value && this.HasFlags(value, 2);
+                return typedConstant.Value is int value && HasFlags(value, 2);
             }
             else if (m_rpcApiNamedArguments.TryGetValue("MethodFlags", out typedConstant))
             {
-                return typedConstant.Value is int value && this.HasFlags(value, 2);
+                return typedConstant.Value is int value && HasFlags(value, 2);
             }
             return false;
-        }
-
-        /// <summary>
-        /// 代码生成标识
-        /// </summary>
-        [Flags]
-        enum CodeGeneratorFlag
-        {
-            /// <summary>
-            /// 生成同步代码（源代码生成无效）
-            /// </summary>
-            [Obsolete("该值已被弃用，请使用颗粒度更小的配置", true)]
-            Sync = 1,
-
-            /// <summary>
-            /// 生成异步代码（源代码生成无效）
-            /// </summary>
-            [Obsolete("该值已被弃用，请使用颗粒度更小的配置", true)]
-            Async = 2,
-
-            /// <summary>
-            /// 生成扩展同步代码
-            /// </summary>
-            ExtensionSync = 4,
-
-            /// <summary>
-            /// 生成扩展异步代码
-            /// </summary>
-            ExtensionAsync = 8,
-
-            /// <summary>
-            /// 包含接口（源代码生成无效）
-            /// </summary>
-            [Obsolete("该值已被弃用，请使用颗粒度更小的配置", true)]
-            IncludeInterface = 16,
-
-            /// <summary>
-            /// 包含实例（源代码生成无效）
-            /// </summary>
-            [Obsolete("该值已被弃用，请使用颗粒度更小的配置", true)]
-            IncludeInstance = 32,
-
-            /// <summary>
-            /// 包含扩展（源代码生成无效）
-            /// </summary>
-            [Obsolete("该值已被弃用，请使用颗粒度更小的配置", true)]
-            IncludeExtension = 64,
-
-            /// <summary>
-            /// 生成实例类同步代码（源代码生成无效）
-            /// </summary>
-            InstanceSync = 128,
-
-            /// <summary>
-            /// 生成实例类异步代码（源代码生成无效）
-            /// </summary>
-            InstanceAsync = 256,
-
-            /// <summary>
-            /// 生成接口同步代码
-            /// </summary>
-            InterfaceSync = 512,
-
-            /// <summary>
-            /// 生成接口异步代码
-            /// </summary>
-            InterfaceAsync = 1024,
         }
     }
 }

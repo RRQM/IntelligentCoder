@@ -1,13 +1,13 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Linq;
 
-namespace TouchSocket.SourceGenerator.Rpc
+namespace IntelligentCoder.SourceGenerator
 {
     /// <summary>
     /// HttpApi代码生成器
     /// </summary>
     [Generator]
-    public class RpcSourceGenerator : ISourceGenerator
+    public class AsyncMethodSourceGenerator : ISourceGenerator
     {
         /// <summary>
         /// 初始化
@@ -15,7 +15,7 @@ namespace TouchSocket.SourceGenerator.Rpc
         /// <param name="context"></param>
         public void Initialize(GeneratorInitializationContext context)
         {
-            context.RegisterForSyntaxNotifications(() => new RpcSyntaxReceiver());
+            context.RegisterForSyntaxNotifications(() => new AsyncMethodReceiver());
         }
 
         /// <summary>
@@ -26,11 +26,11 @@ namespace TouchSocket.SourceGenerator.Rpc
         {
             var s = context.Compilation.GetMetadataReference(context.Compilation.Assembly);
 
-            if (context.SyntaxReceiver is RpcSyntaxReceiver receiver)
+            if (context.SyntaxReceiver is AsyncMethodReceiver receiver)
             {
                 var builders = receiver
-                    .GetRpcApiTypes(context.Compilation)
-                    .Select(i => new RpcCodeBuilder(i))
+                    .GetTypes(context.Compilation)
+                    .Select(i => new AsyncMethodCodeBuilder(i))
                     .Distinct();
                 //Debugger.Launch();
                 foreach (var builder in builders)
