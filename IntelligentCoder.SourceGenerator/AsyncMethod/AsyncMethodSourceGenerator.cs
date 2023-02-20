@@ -4,7 +4,7 @@ using System.Linq;
 namespace IntelligentCoder.SourceGenerator
 {
     /// <summary>
-    /// HttpApi代码生成器
+    /// AsyncMethod代码生成器
     /// </summary>
     [Generator]
     public class AsyncMethodSourceGenerator : ISourceGenerator
