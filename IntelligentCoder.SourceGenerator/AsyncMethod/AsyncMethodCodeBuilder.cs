@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IntelligentCoder.SourceGenerator
+namespace IntelligentCoder
 {
     /// <summary>
     /// RpcApi代码构建器
@@ -28,7 +28,7 @@ namespace IntelligentCoder.SourceGenerator
         public AsyncMethodCodeBuilder(INamedTypeSymbol rpcApi)
         {
             m_rpcApi = rpcApi;
-            AttributeData attributeData = rpcApi.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.GeneratorRpcProxyAttributeTypeName);
+            AttributeData attributeData = rpcApi.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.GeneratorAttributeTypeName);
 
             m_rpcApiNamedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
 

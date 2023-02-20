@@ -8,20 +8,15 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace IntelligentCoder.SourceGenerator
+namespace IntelligentCoder
 {
     /// <summary>
     /// RpcApi语法接收器
     /// </summary>
     sealed class AsyncMethodReceiver : ISyntaxReceiver
     {
-        public const string GeneratorRpcProxyAttributeTypeName = "GeneratorRpcProxyAttribute";
+        public const string GeneratorAttributeTypeName = "IntelligentCoder.AsyncMethodPoster";
         public const string RpcMethodAttributeTypeName = "GeneratorRpcMethodAttribute";
-
-        /// <summary>
-        /// 接口列表
-        /// </summary>
-        private readonly List<InterfaceDeclarationSyntax> interfaceSyntaxList = new List<InterfaceDeclarationSyntax>();
 
         /// <summary>
         /// 访问语法树 
@@ -29,13 +24,9 @@ namespace IntelligentCoder.SourceGenerator
         /// <param name="syntaxNode"></param>
         void ISyntaxReceiver.OnVisitSyntaxNode(SyntaxNode syntaxNode)
         {
-            if (syntaxNode is InterfaceDeclarationSyntax syntax)
-            {
-                interfaceSyntaxList.Add(syntax);
-            }
         }
 
-        public static INamedTypeSymbol GeneratorRpcProxyAttribute { get; private set; }
+        public static INamedTypeSymbol GeneratorAttribute { get; private set; }
 
         /// <summary>
         /// 获取所有符号
@@ -45,10 +36,14 @@ namespace IntelligentCoder.SourceGenerator
         public IEnumerable<INamedTypeSymbol> GetTypes(Compilation compilation)
         {
             //Debugger.Launch();
-            GeneratorRpcProxyAttribute = compilation.GetTypeByMetadataName(GeneratorRpcProxyAttributeTypeName);
-            if (GeneratorRpcProxyAttribute == null)
+            GeneratorAttribute = compilation.GetTypeByMetadataName(GeneratorAttributeTypeName);
+            if (GeneratorAttribute == null)
             {
                 yield break;
+            }
+            if (compilation.)
+            {
+
             }
             foreach (var interfaceSyntax in interfaceSyntaxList)
             {
@@ -68,14 +63,14 @@ namespace IntelligentCoder.SourceGenerator
         /// <returns></returns>
         public static bool IsRpcApiInterface(INamedTypeSymbol @interface)
         {
-            if (GeneratorRpcProxyAttribute is null)
+            if (GeneratorAttribute is null)
             {
                 return false;
             }
             //Debugger.Launch();
             return @interface.GetAttributes().FirstOrDefault(a =>
             {
-                if (a.AttributeClass.ToDisplayString() != GeneratorRpcProxyAttribute.ToDisplayString())
+                if (a.AttributeClass.ToDisplayString() != GeneratorAttribute.ToDisplayString())
                 {
                     return false;
                 }

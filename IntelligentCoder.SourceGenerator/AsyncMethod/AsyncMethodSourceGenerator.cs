@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Linq;
 
-namespace IntelligentCoder.SourceGenerator
+namespace IntelligentCoder
 {
     /// <summary>
     /// AsyncMethod代码生成器
@@ -9,12 +9,43 @@ namespace IntelligentCoder.SourceGenerator
     [Generator]
     public class AsyncMethodSourceGenerator : ISourceGenerator
     {
+        readonly string AsyncMethodAttribute = @"
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace IntelligentCoder
+{
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, AllowMultiple = true)]
+    class AsyncMethodAttribute : Attribute
+    {
+        /// <summary>
+        /// 是否使用ValueTask包装
+        /// </summary>
+        public bool ValueTask { get; set; }
+
+        /// <summary>
+        /// 预编译条件，当条件满足时才会被编译
+        /// </summary>
+        public string Precompile { get; set; }
+
+        /// <summary>
+        /// 当设置该值时，会直接按目标类型生成异步方法。
+        /// </summary>
+        public Type Target { get; set; }
+    }
+}
+
+";
         /// <summary>
         /// 初始化
         /// </summary>
         /// <param name="context"></param>
         public void Initialize(GeneratorInitializationContext context)
         {
+            context.RegisterForPostInitialization((i) => i.AddSource("AsyncMethodAttribute.g.cs", AsyncMethodAttribute));
+
             context.RegisterForSyntaxNotifications(() => new AsyncMethodReceiver());
         }
 
