@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.Diagnostics;
 using System.Linq;
 
 namespace IntelligentCoder
@@ -59,8 +60,9 @@ namespace IntelligentCoder
 
             if (context.SyntaxReceiver is AsyncMethodReceiver receiver)
             {
+                Debugger.Launch();
                 var builders = receiver
-                    .GetTypes(context.Compilation)
+                    .GetAsyncMethodPosterTypes(context.Compilation)
                     .Select(i => new AsyncMethodCodeBuilder(i))
                     .Distinct();
                 //Debugger.Launch();

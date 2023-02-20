@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntelligentCoder", "Intelli
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntelligentCoder.SourceGenerator", "IntelligentCoder.SourceGenerator\IntelligentCoder.SourceGenerator.csproj", "{E0BF0210-FACE-451B-BEBB-53C9F849DB80}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp_Net6", "ConsoleApp_Net6\ConsoleApp_Net6.csproj", "{D5B723F2-45F8-4C31-AFC8-5BF9532C062D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{E0BF0210-FACE-451B-BEBB-53C9F849DB80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E0BF0210-FACE-451B-BEBB-53C9F849DB80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E0BF0210-FACE-451B-BEBB-53C9F849DB80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5B723F2-45F8-4C31-AFC8-5BF9532C062D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5B723F2-45F8-4C31-AFC8-5BF9532C062D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5B723F2-45F8-4C31-AFC8-5BF9532C062D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5B723F2-45F8-4C31-AFC8-5BF9532C062D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

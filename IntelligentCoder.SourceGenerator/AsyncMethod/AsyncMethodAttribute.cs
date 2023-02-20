@@ -30,5 +30,10 @@ namespace IntelligentCoder
         /// 忽略方法
         /// </summary>
         public string IgnoreMethods { get; set; }
+
+        /// <summary>
+        /// 命名空间
+        /// </summary>
+        public string Namespace { get; set; }
     }
 }

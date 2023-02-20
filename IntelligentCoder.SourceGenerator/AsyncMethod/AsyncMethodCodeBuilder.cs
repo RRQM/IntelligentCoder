@@ -14,37 +14,23 @@ namespace IntelligentCoder
     /// </summary>
     internal sealed class AsyncMethodCodeBuilder
     {
+        private readonly Dictionary<string, TypedConstant> m_namedArguments;
+
         /// <summary>
         /// 接口符号
         /// </summary>
-        private readonly INamedTypeSymbol m_rpcApi;
-
-        private readonly Dictionary<string, TypedConstant> m_rpcApiNamedArguments;
-
+        private readonly INamedTypeSymbol m_namedTypeSymbol;
         /// <summary>
         /// RpcApi代码构建器
         /// </summary>
         /// <param name="rpcApi"></param>
-        public AsyncMethodCodeBuilder(INamedTypeSymbol rpcApi)
+        public AsyncMethodCodeBuilder(INamedTypeSymbol  namedTypeSymbol)
         {
-            m_rpcApi = rpcApi;
-            AttributeData attributeData = rpcApi.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.GeneratorAttributeTypeName);
+            m_namedTypeSymbol = namedTypeSymbol;
+            AttributeData attributeData = namedTypeSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.AsyncMethodPosterAttributeTypeName);
 
-            m_rpcApiNamedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
-
-            if (m_rpcApiNamedArguments.TryGetValue("Prefix", out var typedConstant))
-            {
-                Prefix = typedConstant.Value.ToString();
-            }
-            else
-            {
-                Prefix = m_rpcApi.ToDisplayString();
-            }
+            m_namedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
         }
-
-        public string Prefix { get; set; }
-
-        public string ServerName { get; set; }
 
         /// <summary>
         /// using
@@ -61,7 +47,7 @@ namespace IntelligentCoder
 
         public string GetFileName()
         {
-            return m_rpcApi.ToDisplayString() + "Generator";
+            return m_namedTypeSymbol.ToDisplayString() + "Generator";
         }
 
         /// <summary>
@@ -87,7 +73,10 @@ namespace IntelligentCoder
             }
             builder.AppendLine($"namespace {GetNamespace()}");
             builder.AppendLine("{");
-
+            if (m_namedTypeSymbol.IsAbstract)
+            {
+                BuildIntereface(builder);
+            }
             if (AllowAsync(CodeGeneratorFlag.InterfaceSync) || AllowAsync(CodeGeneratorFlag.InterfaceAsync))
             {
                 BuildIntereface(builder);
@@ -103,18 +92,6 @@ namespace IntelligentCoder
             return builder.ToString();
         }
 
-        /// <summary>
-        /// 查找接口类型及其继承的接口的所有方法
-        /// </summary>
-        /// <param name="httpApi">接口</param>
-        /// <returns></returns>
-        private IEnumerable<IMethodSymbol> FindApiMethods()
-        {
-            return m_rpcApi
-                .GetMembers()
-                .OfType<IMethodSymbol>();
-        }
-
         private bool AllowAsync(CodeGeneratorFlag flag, IMethodSymbol method = default, Dictionary<string, TypedConstant> namedArguments = default)
         {
             if (method != null && method.Name.EndsWith("Async"))
@@ -125,7 +102,7 @@ namespace IntelligentCoder
             {
                 return ((CodeGeneratorFlag)typedConstant.Value).HasFlag(flag);
             }
-            else if (m_rpcApiNamedArguments != null && m_rpcApiNamedArguments.TryGetValue("GeneratorFlag", out typedConstant))
+            else if (m_namedArguments != null && m_namedArguments.TryGetValue("GeneratorFlag", out typedConstant))
             {
                 return ((CodeGeneratorFlag)typedConstant.Value).HasFlag(flag);
             }
@@ -142,33 +119,23 @@ namespace IntelligentCoder
             {
                 return ((CodeGeneratorFlag)typedConstant.Value).HasFlag(flag);
             }
-            else if (m_rpcApiNamedArguments != null && m_rpcApiNamedArguments.TryGetValue("GeneratorFlag", out typedConstant))
+            else if (m_namedArguments != null && m_namedArguments.TryGetValue("GeneratorFlag", out typedConstant))
             {
                 return ((CodeGeneratorFlag)typedConstant.Value).HasFlag(flag);
             }
             return true;
         }
 
-        private bool IsInheritedInterface()
-        {
-            if (m_rpcApiNamedArguments.TryGetValue("InheritedInterface", out var typedConstant))
-            {
-                return typedConstant.Value is bool value && value;
-            }
-            return true;
-        }
-
-
         private void BuildIntereface(StringBuilder builder)
         {
             var interfaceNames = new List<string>();
             if (IsInheritedInterface())
             {
-                var interfaceNames1 = m_rpcApi.Interfaces
+                var interfaceNames1 = m_namedTypeSymbol.Interfaces
                .Where(a => AsyncMethodReceiver.IsRpcApiInterface(a))
                .Select(a => $"I{new AsyncMethodCodeBuilder(a).GetClassName()}");
 
-                var interfaceNames2 = m_rpcApi.Interfaces
+                var interfaceNames2 = m_namedTypeSymbol.Interfaces
                    .Where(a => !AsyncMethodReceiver.IsRpcApiInterface(a))
                    .Select(a => a.ToDisplayString());
 
@@ -595,17 +562,28 @@ namespace IntelligentCoder
             return codeString.ToString();
         }
 
+        /// <summary>
+        /// 查找接口类型及其继承的接口的所有方法
+        /// </summary>
+        /// <param name="httpApi">接口</param>
+        /// <returns></returns>
+        private IEnumerable<IMethodSymbol> FindApiMethods()
+        {
+            return m_namedTypeSymbol
+                .GetMembers()
+                .OfType<IMethodSymbol>();
+        }
         private string GetClassName()
         {
-            if (m_rpcApiNamedArguments.TryGetValue("ClassName", out var typedConstant))
+            if (m_namedArguments.TryGetValue("ClassName", out var typedConstant))
             {
                 return typedConstant.Value?.ToString();
             }
-            else if (m_rpcApi.Name.StartsWith("I"))
+            else if (m_namedTypeSymbol.Name.StartsWith("I"))
             {
-                return m_rpcApi.Name.Remove(0, 1);
+                return m_namedTypeSymbol.Name.Remove(0, 1);
             }
-            return m_rpcApi.Name;
+            return m_namedTypeSymbol.Name;
         }
 
         private string GetDescription(IMethodSymbol method)
@@ -632,7 +610,7 @@ namespace IntelligentCoder
                     return -1;
                 }).Select(a => a.Value.ToString()).ToArray();
             }
-            else if (m_rpcApiNamedArguments.TryGetValue("GenericConstraintTypes", out typedConstant))
+            else if (m_namedArguments.TryGetValue("GenericConstraintTypes", out typedConstant))
             {
                 return typedConstant.Values.Sort((a, b) =>
                 {
@@ -659,7 +637,7 @@ namespace IntelligentCoder
             {
                 return GetMethodName(method, namedArguments);
             }
-            else if (m_rpcApiNamedArguments.TryGetValue("MethodInvoke", out typedConstant) && typedConstant.Value is bool c && c)
+            else if (m_namedArguments.TryGetValue("MethodInvoke", out typedConstant) && typedConstant.Value is bool c && c)
             {
                 return GetMethodName(method, namedArguments);
             }
@@ -681,11 +659,11 @@ namespace IntelligentCoder
 
         private string GetNamespace()
         {
-            if (m_rpcApiNamedArguments.TryGetValue("Namespace", out var typedConstant))
+            if (m_namedArguments.TryGetValue("Namespace", out var typedConstant))
             {
-                return typedConstant.Value?.ToString() ?? "TouchSocket.Rpc.Generators";
+                return typedConstant.Value?.ToString() ?? this.m_namedTypeSymbol.ToDisplayString(new SymbolDisplayFormat( SymbolDisplayGlobalNamespaceStyle.Omitted));
             }
-            return "TouchSocket.Rpc.Generators";
+            return this.m_namedTypeSymbol.ToDisplayString(new SymbolDisplayFormat(SymbolDisplayGlobalNamespaceStyle.Omitted));
         }
 
         private string GetRealTypeString(IParameterSymbol parameterSymbol)
@@ -736,11 +714,20 @@ namespace IntelligentCoder
             {
                 return typedConstant.Value is int value && HasFlags(value, 2);
             }
-            else if (m_rpcApiNamedArguments.TryGetValue("MethodFlags", out typedConstant))
+            else if (m_namedArguments.TryGetValue("MethodFlags", out typedConstant))
             {
                 return typedConstant.Value is int value && HasFlags(value, 2);
             }
             return false;
+        }
+
+        private bool IsInheritedInterface()
+        {
+            if (m_namedArguments.TryGetValue("InheritedInterface", out var typedConstant))
+            {
+                return typedConstant.Value is bool value && value;
+            }
+            return true;
         }
     }
 }
