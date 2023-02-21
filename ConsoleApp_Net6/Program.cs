@@ -8,11 +8,20 @@ namespace ConsoleApp_Net6
         {
             Console.WriteLine("Hello, World!");
             TestInterface testInterface = default;
+            testInterface.AddAsync(10, 10,10);
+            //testClass.AddAsync(10,10);
+            //testClass.AddAsync
+
+            //TestClass2 testClass2 = new TestClass2();
+            //testClass2.Add(10, 10);
+
+            //TouchSocket.Sockets.TcpClient tcpClient = new TouchSocket.Sockets.TcpClient();
+
         }
     }
 
     [AsyncMethodPoster]
-    internal partial interface TestInterface
+    public partial interface TestInterface
     {
         /// <summary>
         /// 添加
@@ -20,11 +29,34 @@ namespace ConsoleApp_Net6
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        int Add(int a, int b);
+        void Add<T>(int a, int b,T c);
     }
-    //partial interface TestInterface
+
+    //[AsyncMethodPoster]
+    //static partial class TestClass
     //{
-    //    void Add1(int a, int b);
+    //    public static int Add(int a, int b)
+    //    {
+    //        return a + b;
+    //    }
     //}
 
+    //public class TestClass2
+    //{
+    //    public int Add(int a, int b)
+    //    {
+    //        return a + b;
+    //    }
+
+    //    public int Add2(int a, int b)
+    //    {
+    //        return a + b;
+    //    }
+    //}
+
+    //[AsyncMethodPoster(Target = typeof(TestInterface))]
+    //public static partial class TestClass2Extension
+    //{
+
+    //}
 }

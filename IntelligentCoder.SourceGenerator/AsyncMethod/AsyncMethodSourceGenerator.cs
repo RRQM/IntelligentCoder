@@ -10,7 +10,7 @@ namespace IntelligentCoder
     [Generator]
     public class AsyncMethodSourceGenerator : ISourceGenerator
     {
-        readonly string AsyncMethodAttribute = @"
+        readonly string m_asyncMethodAttribute = @"
 
 using System;
 using System.Collections.Generic;
@@ -18,14 +18,9 @@ using System.Text;
 
 namespace IntelligentCoder
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     internal class AsyncMethodAttribute : Attribute
     {
-        /// <summary>
-        /// 是否使用ValueTask包装
-        /// </summary>
-        public bool ValueTask { get; set; }
-
         /// <summary>
         /// 预编译条件，当条件满足时才会被编译
         /// </summary>
@@ -37,7 +32,7 @@ namespace IntelligentCoder
         public string Template { get; set; }
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, AllowMultiple = false)]
     internal class AsyncMethodPosterAttribute : AsyncMethodAttribute
     {
         /// <summary>
@@ -51,7 +46,6 @@ namespace IntelligentCoder
         public IEnumerable<string> IgnoreMethods { get; set; }
     }
 }
-
 ";
         /// <summary>
         /// 初始化
@@ -59,7 +53,7 @@ namespace IntelligentCoder
         /// <param name="context"></param>
         public void Initialize(GeneratorInitializationContext context)
         {
-            context.RegisterForPostInitialization((i) => i.AddSource("AsyncMethodAttribute.g.cs", AsyncMethodAttribute));
+            context.RegisterForPostInitialization((i) => i.AddSource("AsyncMethodAttribute.g.cs", m_asyncMethodAttribute));
 
             context.RegisterForSyntaxNotifications(() => new AsyncMethodReceiver());
         }

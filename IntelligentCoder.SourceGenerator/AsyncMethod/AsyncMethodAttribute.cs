@@ -4,7 +4,7 @@ using System.Text;
 
 namespace IntelligentCoder
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     internal class AsyncMethodAttribute : Attribute
     {
         /// <summary>
@@ -18,7 +18,7 @@ namespace IntelligentCoder
         public string Template { get; set; }
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, AllowMultiple = false)]
     internal class AsyncMethodPosterAttribute : AsyncMethodAttribute
     {
         /// <summary>
