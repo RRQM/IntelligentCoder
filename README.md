@@ -4,7 +4,54 @@
 
 这是一个能辅助你实现异步代码的生成器。他可以在接口，类，结构体上工作。有时候甚至还能给已编译的方法扩展异步。
 
-例如：对于A接口，在添加标识**AsyncMethodPoster**后，他会自动补充异步方法。
+例如：对于TestClass而言，Run方法是比较耗时的。
+
+```
+public class TestClass
+{
+    public void Run()
+    {
+        Thread.Sleep(2000);
+    }
+}
+```
+所以应当提供异步方法
+```
+public class TestClass
+{
+    public void Run()
+    {
+        Thread.Sleep(2000);
+    }
+
+
+    public Task RunAsync()
+    {
+        return Task.Run(() =>
+         {
+             this.Run();
+         });
+    }
+}
+
+```
+而IntelligentCoder的作用，就是替你自动生成异步的代码。
+
+```
+public partial class TestClass
+{
+    public Task RunAsync()
+    {
+        return Task.Run(() =>
+         {
+             this.Run();
+         });
+    }
+}
+
+```
+
+又例如：对于A接口，在添加标识**AsyncMethodPoster**后，他会自动补充异步方法。
 
 ```
 [AsyncMethodPoster]
