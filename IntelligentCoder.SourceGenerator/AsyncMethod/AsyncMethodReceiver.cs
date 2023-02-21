@@ -11,8 +11,8 @@ namespace IntelligentCoder
     /// </summary>
     internal sealed class AsyncMethodReceiver : ISyntaxReceiver
     {
-        public const string AsyncMethodPosterAttributeTypeName = "IntelligentCoder.AsyncMethodPoster";
-        public const string RpcMethodAttributeTypeName = "GeneratorRpcMethodAttribute";
+        public const string AsyncMethodPosterAttributeTypeName = "IntelligentCoder.AsyncMethodPosterAttribute";
+        public const string AsyncMethodAttributeTypeName = "IntelligentCoder.AsyncMethodAttribute";
 
         public static INamedTypeSymbol GeneratorAttribute { get; private set; }
 

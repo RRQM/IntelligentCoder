@@ -5,11 +5,11 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IntelligentCoder.SourceGenerator\IntelligentCoder.SourceGenerator.csproj" OutputItemType="Analyzer"
-						ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\IntelligentCoder.SourceGenerator\IntelligentCoder.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

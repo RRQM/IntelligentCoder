@@ -18,8 +18,8 @@ using System.Text;
 
 namespace IntelligentCoder
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, AllowMultiple = true)]
-    class AsyncMethodAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    internal class AsyncMethodAttribute : Attribute
     {
         /// <summary>
         /// 是否使用ValueTask包装
@@ -32,9 +32,23 @@ namespace IntelligentCoder
         public string Precompile { get; set; }
 
         /// <summary>
-        /// 当设置该值时，会直接按目标类型生成异步方法。
+        /// 生成异步方法名的模板，默认：""{0}Async""。
+        /// </summary>
+        public string Template { get; set; }
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, AllowMultiple = true)]
+    internal class AsyncMethodPosterAttribute : AsyncMethodAttribute
+    {
+        /// <summary>
+        /// 当设置该值时，会直接按目标类型生成异步扩展方法。
         /// </summary>
         public Type Target { get; set; }
+
+        /// <summary>
+        /// 忽略方法
+        /// </summary>
+        public IEnumerable<string> IgnoreMethods { get; set; }
     }
 }
 
@@ -60,10 +74,10 @@ namespace IntelligentCoder
 
             if (context.SyntaxReceiver is AsyncMethodReceiver receiver)
             {
-                Debugger.Launch();
+                //Debugger.Launch();
                 var builders = receiver
                     .GetAsyncMethodPosterTypes(context.Compilation)
-                    .Select(i => new AsyncMethodCodeBuilder(i))
+                    .Select(i => new AsyncMethodCodeBuilder(i, context.Compilation))
                     .Distinct();
                 //Debugger.Launch();
                 foreach (var builder in builders)
