@@ -8,7 +8,7 @@ namespace ConsoleApp_Net6
         {
             Console.WriteLine("Hello, World!");
             TestInterface testInterface = default;
-            testInterface.AddAsync(10, 10,10);
+            //testInterface.AddAsync(10, 10,10);
             //testClass.AddAsync(10,10);
             //testClass.AddAsync
 
@@ -30,6 +30,17 @@ namespace ConsoleApp_Net6
         /// <param name="b"></param>
         /// <returns></returns>
         void Add<T>(int a, int b,T c);
+    }
+
+    public partial interface TestInterface
+    {
+        /// <summary>
+        /// 添加
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        void Add2<T>(int a, int b, T c);
     }
 
     //[AsyncMethodPoster]

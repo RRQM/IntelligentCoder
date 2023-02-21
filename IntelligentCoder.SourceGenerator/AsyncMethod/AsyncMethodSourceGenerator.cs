@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -74,9 +75,14 @@ namespace IntelligentCoder
                     .Select(i => new AsyncMethodCodeBuilder(i, context.Compilation))
                     .Distinct();
                 //Debugger.Launch();
+                List<string> strings= new List<string>();  
                 foreach (var builder in builders)
                 {
-                    context.AddSource($"{builder.GetFileName()}.g.cs", builder.ToSourceText());
+                    if (!strings.Contains(builder.GetFileName()))
+                    {
+                        context.AddSource($"{builder.GetFileName()}.g.cs", builder.ToSourceText());
+                        strings.Add(builder.GetFileName());
+                    }
                 }
             }
         }

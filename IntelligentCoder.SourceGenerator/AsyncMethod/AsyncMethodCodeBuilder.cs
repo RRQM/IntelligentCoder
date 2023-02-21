@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace IntelligentCoder
     /// <summary>
     /// RpcApi代码构建器
     /// </summary>
-    internal sealed class AsyncMethodCodeBuilder
+    internal sealed class AsyncMethodCodeBuilder: IEquatable<AsyncMethodCodeBuilder>
     {
         private readonly Dictionary<string, TypedConstant> m_namedArguments;
 
@@ -559,6 +560,11 @@ namespace IntelligentCoder
         private bool HasFlags(int value, int flag)
         {
             return (value & flag) == flag;
+        }
+
+        public bool Equals(AsyncMethodCodeBuilder other)
+        {
+           return other.GetFileName() == this.GetFileName();
         }
     }
 }
