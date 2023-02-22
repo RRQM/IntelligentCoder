@@ -31,7 +31,7 @@ namespace ConsoleApp_Net6
 
         }
 
-        [AsyncMethod(Template ="My{0}Async")]//测试模板生成
+        [AsyncMethod(Template = "My{0}Async")]//测试模板生成
         public void Add3()
         {
 
@@ -42,7 +42,7 @@ namespace ConsoleApp_Net6
     #region 接口实现
     #endregion
 
-    [AsyncMethodPoster(IgnoreMethods = new string[] { "Add2" })]
+    [AsyncMethodPoster]
     public partial interface TestInterface
     {
         /// <summary>
@@ -66,6 +66,12 @@ namespace ConsoleApp_Net6
         /// <param name="c"></param>
         void Add2<T>(int a, int b, T c);
     }
+
+    //[AsyncMethodPoster(Deep =10)]
+    //public partial class TestInterfaceImp : TestInterface
+    //{
+
+    //}
 
     [AsyncMethodPoster]
     static partial class TestClass

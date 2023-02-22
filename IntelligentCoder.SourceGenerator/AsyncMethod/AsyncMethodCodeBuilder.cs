@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -16,6 +15,7 @@ namespace IntelligentCoder
     /// </summary>
     internal sealed class AsyncMethodCodeBuilder : IEquatable<AsyncMethodCodeBuilder>
     {
+        private readonly List<string> m_allMethodIds = new List<string>();
         private readonly Dictionary<string, TypedConstant> m_namedArguments;
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace IntelligentCoder
         /// </summary>
         private readonly INamedTypeSymbol m_namedTypeSymbol;
 
-        public IAssemblySymbol Assembly => this.m_namedTypeSymbol.ContainingAssembly;
+        private readonly List<string> m_needMethodIds = new List<string>();
 
         /// <summary>
         /// RpcApi代码构建器
@@ -46,6 +46,7 @@ namespace IntelligentCoder
             }
         }
 
+        public IAssemblySymbol Assembly => this.m_namedTypeSymbol.ContainingAssembly;
         public Compilation Compilation { get; }
 
         public List<string> IgnoreMethods { get; } = new List<string>();
@@ -61,6 +62,19 @@ namespace IntelligentCoder
                 yield return "using System.Diagnostics;";
                 yield return "using System.Threading.Tasks;";
             }
+        }
+
+        public int Deep()
+        {
+            if (this.m_namedArguments.TryGetValue("Deep", out var typedConstant))
+            {
+                if (typedConstant.Value is int deep)
+                {
+                    return deep;
+                }
+            }
+
+            return 0;
         }
 
         public bool Equals(AsyncMethodCodeBuilder other)
@@ -80,19 +94,6 @@ namespace IntelligentCoder
                 return typedConstant.Value?.ToString();
             }
             return null;
-        }
-
-        public int Deep()
-        {
-            if (this.m_namedArguments.TryGetValue("Deep", out var typedConstant))
-            {
-                if (typedConstant.Value is int deep)
-                {
-                    return deep;
-                }
-            }
-
-            return 0;
         }
 
         /// <summary>
@@ -250,85 +251,6 @@ namespace IntelligentCoder
             return codeString.ToString();
         }
 
-        private string BuildStaticMethod(INamedTypeSymbol namedTypeSymbol, IMethodSymbol method)
-        {
-            //Debugger.Launch();
-
-            var attributeData = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.AsyncMethodAttributeTypeName);
-            Dictionary<string, TypedConstant> namedArguments;
-            if (attributeData is null)
-            {
-                namedArguments = new Dictionary<string, TypedConstant>();
-            }
-            else
-            {
-                namedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
-            }
-
-            string methodName = GetMethodName(method, namedArguments);
-            string returnType = GetReturnType(method, namedArguments);
-            string accessibility = GetAccessibility(method);
-            string precompile = GetPrecompile(method, namedArguments);
-            var parameters = method.Parameters;
-            //生成开始
-            var codeString = new StringBuilder();
-            //以下生成异步
-            if (!string.IsNullOrWhiteSpace(precompile))
-            {
-                codeString.AppendLine();
-                codeString.AppendLine($"#if {precompile}");
-            }
-            if (method.ReturnsVoid)
-            {
-                if (method.IsGenericMethod)
-                {
-                    codeString.Append($"public static Task {methodName}<{GetGenericType(method)}>");
-                }
-                else
-                {
-                    codeString.Append($"public static Task {methodName}");
-                }
-            }
-            else
-            {
-                if (method.IsGenericMethod)
-                {
-                    codeString.Append($"public static Task<{returnType}> {methodName}<{GetGenericType(method)}>");
-                }
-                else
-                {
-                    codeString.Append($"public static Task<{returnType}> {methodName}");
-                }
-            }
-
-            codeString.Append($"(");//方法参数
-            codeString.Append($"{string.Join(",", parameters.Select(a => $"{a.ToDisplayString()} {a.Name}"))}");//方法参数
-            codeString.Append($")");//方法参数
-            codeString.AppendLine("{");//方法开始
-
-            if (method.ReturnsVoid)
-            {
-                codeString.AppendLine("return Task.Run(() => ");
-                codeString.AppendLine("{");
-                codeString.AppendLine($"{namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
-                codeString.AppendLine("});");
-            }
-            else
-            {
-                codeString.AppendLine("return Task.Run(() => ");
-                codeString.AppendLine("{");
-                codeString.AppendLine($"return {namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
-                codeString.AppendLine("});");
-            }
-            codeString.AppendLine("}");
-            if (!string.IsNullOrWhiteSpace(precompile))
-            {
-                codeString.AppendLine();
-                codeString.AppendLine($"#endif");
-            }
-            return codeString.ToString();
-        }
-
         private void BuildIntereface(StringBuilder builder)
         {
             builder.AppendLine($"partial interface {GetClassName()}");
@@ -396,35 +318,6 @@ namespace IntelligentCoder
             }
 
             builder.AppendLine("}");
-        }
-
-        private bool NewExists(IMethodSymbol method)
-        {
-            return m_allMethodIds.Contains(GetNewMethodId(method));
-        }
-
-        private bool IsAsync(IMethodSymbol method)
-        {
-            if (method.IsAsync)
-            {
-                return true;
-            }
-            if (method.Name.EndsWith("Async"))
-            {
-                return true;
-            }
-
-            if (method.ReturnsVoid)
-            {
-                return false;
-            }
-            else if (method.ReturnType.ToDisplayString().Contains(typeof(ValueTask).FullName) ||
-                method.ReturnType.ToDisplayString().Contains(typeof(Task).FullName))
-            {
-                return true;
-            }
-
-            return false;
         }
 
         private string BuildMethodInterface(IMethodSymbol method)
@@ -571,24 +464,85 @@ namespace IntelligentCoder
             }
             return codeString.ToString();
         }
-        
-        private  string GetKeyword(IMethodSymbol method)
+
+        private string BuildStaticMethod(INamedTypeSymbol namedTypeSymbol, IMethodSymbol method)
         {
-            if (method.IsStatic)
+            //Debugger.Launch();
+
+            var attributeData = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.AsyncMethodAttributeTypeName);
+            Dictionary<string, TypedConstant> namedArguments;
+            if (attributeData is null)
             {
-                return "static";
+                namedArguments = new Dictionary<string, TypedConstant>();
+            }
+            else
+            {
+                namedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
             }
 
-            if (method.IsAbstract||method.IsVirtual)
+            string methodName = GetMethodName(method, namedArguments);
+            string returnType = GetReturnType(method, namedArguments);
+            string accessibility = GetAccessibility(method);
+            string precompile = GetPrecompile(method, namedArguments);
+            var parameters = method.Parameters;
+            //生成开始
+            var codeString = new StringBuilder();
+            //以下生成异步
+            if (!string.IsNullOrWhiteSpace(precompile))
             {
-                return "virtual";
+                codeString.AppendLine();
+                codeString.AppendLine($"#if {precompile}");
+            }
+            if (method.ReturnsVoid)
+            {
+                if (method.IsGenericMethod)
+                {
+                    codeString.Append($"public static Task {methodName}<{GetGenericType(method)}>");
+                }
+                else
+                {
+                    codeString.Append($"public static Task {methodName}");
+                }
+            }
+            else
+            {
+                if (method.IsGenericMethod)
+                {
+                    codeString.Append($"public static Task<{returnType}> {methodName}<{GetGenericType(method)}>");
+                }
+                else
+                {
+                    codeString.Append($"public static Task<{returnType}> {methodName}");
+                }
             }
 
-            return string.Empty;
+            codeString.Append($"(");//方法参数
+            codeString.Append($"{string.Join(",", parameters.Select(a => $"{a.ToDisplayString()} {a.Name}"))}");//方法参数
+            codeString.Append($")");//方法参数
+            codeString.AppendLine("{");//方法开始
+
+            if (method.ReturnsVoid)
+            {
+                codeString.AppendLine("return Task.Run(() => ");
+                codeString.AppendLine("{");
+                codeString.AppendLine($"{namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                codeString.AppendLine("});");
+            }
+            else
+            {
+                codeString.AppendLine("return Task.Run(() => ");
+                codeString.AppendLine("{");
+                codeString.AppendLine($"return {namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                codeString.AppendLine("});");
+            }
+            codeString.AppendLine("}");
+            if (!string.IsNullOrWhiteSpace(precompile))
+            {
+                codeString.AppendLine();
+                codeString.AppendLine($"#endif");
+            }
+            return codeString.ToString();
         }
-
-        readonly List<string> m_needMethodIds = new List<string>();
-        readonly List<string> m_allMethodIds = new List<string>();
 
         private List<IMethodSymbol> FindAllMethods(INamedTypeSymbol namedTypeSymbol)
         {
@@ -600,7 +554,7 @@ namespace IntelligentCoder
 
         private void FindMethods(INamedTypeSymbol namedTypeSymbol, List<IMethodSymbol> methods, ref int deep)
         {
-            //Debugger.Launch();
+            Debugger.Launch();
             var list = namedTypeSymbol
                .GetMembers()
                .OfType<IMethodSymbol>()
@@ -612,6 +566,10 @@ namespace IntelligentCoder
                    }
 
                    string id = GetMethodId(a);
+                   if (m_allMethodIds.Contains(id))
+                   {
+                       return false;
+                   }
                    m_allMethodIds.Add(id);
 
                    if (IsAsync(a))
@@ -631,33 +589,58 @@ namespace IntelligentCoder
                                return false;
                            }
                            break;
+
                        case Accessibility.ProtectedOrInternal:
                        case Accessibility.ProtectedAndInternal:
                        case Accessibility.Internal:
-                           if (!SymbolEqualityComparer.Default.Equals(namedTypeSymbol.ContainingAssembly, this.m_namedTypeSymbol.ContainingAssembly))
+                           if (!SymbolEqualityComparer.Default.Equals(a.ContainingAssembly, this.Assembly))
                            {
                                return false;
                            }
                            break;
+
                        case Accessibility.Protected:
                        case Accessibility.Public:
                            break;
+
                        default:
                            return false;
                    }
+                   if (!a.ReturnsVoid)
+                   {
+                       a.Kind
+                       if (a.ReturnType.Name.Contains("HRESULT"))
+                       {
+
+                       }
+                       if (!IsPublic(a.ReceiverType))
+                       {
+                           if (!SymbolEqualityComparer.Default.Equals(a.ReceiverType.ContainingAssembly, this.Compilation.Assembly))
+                           {
+                               return false;
+                           }
+                       }
+                   }
+
+                   if (!IsPublic(a)&&(!SymbolEqualityComparer.Default.Equals(a.ContainingAssembly, this.Assembly)))
+                   {
+                       return false;
+                   }
+
                    foreach (var item in a.Parameters)
                    {
                        if (item.RefKind != RefKind.None)
                        {
                            return false;
                        }
-
-                       if (!IsPublic(item.Type) && !SymbolEqualityComparer.Default.Equals(item.Type.ContainingAssembly, this.m_namedTypeSymbol.ContainingAssembly))
+                       if (!IsPublic(item))
                        {
-                           return false;
+                           if (!SymbolEqualityComparer.Default.Equals(item.ContainingAssembly, this.Assembly))
+                           {
+                               return false;
+                           }
                        }
                    }
-
 
                    if (m_needMethodIds.Contains(id))
                    {
@@ -673,12 +656,24 @@ namespace IntelligentCoder
             {
                 return;
             }
+            if (--deep < 0)
+            {
+                return;
+            }
 
-            if (deep-- > 0 && namedTypeSymbol.BaseType != null)
+            if (namedTypeSymbol.BaseType != null)
             {
                 if (IsPublic(namedTypeSymbol.BaseType) || SymbolEqualityComparer.Default.Equals(namedTypeSymbol.BaseType.ContainingAssembly, this.Assembly))
                 {
                     FindMethods(namedTypeSymbol.BaseType, methods, ref deep);
+                }
+            }
+
+            foreach (var item in namedTypeSymbol.Interfaces)
+            {
+                if (IsPublic(item) || SymbolEqualityComparer.Default.Equals(item.ContainingAssembly, this.Compilation.Assembly))
+                {
+                    FindMethods(item, methods, ref deep);
                 }
             }
         }
@@ -724,21 +719,25 @@ namespace IntelligentCoder
             return string.Join(",", method.TypeParameters.Select(a => a.ToDisplayString()));
         }
 
+        private string GetKeyword(IMethodSymbol method)
+        {
+            if (method.IsStatic)
+            {
+                return "static";
+            }
+
+            if (method.IsAbstract || method.IsVirtual)
+            {
+                return "virtual";
+            }
+
+            return string.Empty;
+        }
+
         private string GetMethodId(IMethodSymbol method)
         {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.Append(method.Name);
-            foreach (var item in method.Parameters)
-            {
-                stringBuilder.Append(item.ToDisplayString());
-            }
-            return stringBuilder.ToString();
-        }
-
-        private string GetNewMethodId(IMethodSymbol method)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append(GetMethodName(method));
             foreach (var item in method.Parameters)
             {
                 stringBuilder.Append(item.ToDisplayString());
@@ -761,6 +760,7 @@ namespace IntelligentCoder
                 return method.Name + "Async";
             }
         }
+
         private string GetMethodName(IMethodSymbol method)
         {
             var attributeData = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.AsyncMethodAttributeTypeName);
@@ -797,6 +797,17 @@ namespace IntelligentCoder
             return null;
         }
 
+        private string GetNewMethodId(IMethodSymbol method)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append(GetMethodName(method));
+            foreach (var item in method.Parameters)
+            {
+                stringBuilder.Append(item.ToDisplayString());
+            }
+            return stringBuilder.ToString();
+        }
+
         private string GetReturnType(IMethodSymbol method, Dictionary<string, TypedConstant> namedArguments)
         {
             return method.ReturnType.ToDisplayString();
@@ -805,6 +816,30 @@ namespace IntelligentCoder
         private bool HasFlags(int value, int flag)
         {
             return (value & flag) == flag;
+        }
+
+        private bool IsAsync(IMethodSymbol method)
+        {
+            if (method.IsAsync)
+            {
+                return true;
+            }
+            if (method.Name.EndsWith("Async"))
+            {
+                return true;
+            }
+
+            if (method.ReturnsVoid)
+            {
+                return false;
+            }
+            else if (method.ReturnType.ToDisplayString().Contains(typeof(ValueTask).FullName) ||
+                method.ReturnType.ToDisplayString().Contains(typeof(Task).FullName))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool IsAsync(MethodInfo methodInfo)
@@ -826,9 +861,9 @@ namespace IntelligentCoder
             return false;
         }
 
-        private bool IsPublic(ISymbol symbol)
+        private bool IsInternal(ISymbol symbol)
         {
-            return symbol.DeclaredAccessibility == Accessibility.Public;
+            return symbol.DeclaredAccessibility == Accessibility.Internal;
         }
 
         private bool IsPrivate(ISymbol symbol)
@@ -836,9 +871,14 @@ namespace IntelligentCoder
             return symbol.DeclaredAccessibility == Accessibility.Private;
         }
 
-        private bool IsInternal(ISymbol symbol)
+        private bool IsPublic(ISymbol symbol)
         {
-            return symbol.DeclaredAccessibility == Accessibility.Internal;
+            return symbol.DeclaredAccessibility == Accessibility.Public;
+        }
+
+        private bool NewExists(IMethodSymbol method)
+        {
+            return m_allMethodIds.Contains(GetNewMethodId(method));
         }
     }
 }
