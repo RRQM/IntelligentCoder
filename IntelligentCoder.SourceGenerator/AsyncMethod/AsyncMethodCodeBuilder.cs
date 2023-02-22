@@ -510,7 +510,7 @@ namespace IntelligentCoder
             string methodName = GetMethodName(method, namedArguments);
             string returnType = GetReturnType(method, namedArguments);
             string accessibility = GetAccessibility(method);
-            string staticWord = method.IsStatic ? "static" : string.Empty;
+            string keyword = GetKeyword(method);
             string precompile = GetPrecompile(method, namedArguments);
             var parameters = method.Parameters;
             //生成开始
@@ -527,22 +527,22 @@ namespace IntelligentCoder
             {
                 if (method.IsGenericMethod)
                 {
-                    codeString.Append($"{GetAccessibility(method)} {staticWord} Task {methodName}<{GetGenericType(method)}>");
+                    codeString.Append($"{GetAccessibility(method)} {keyword} Task {methodName}<{GetGenericType(method)}>");
                 }
                 else
                 {
-                    codeString.Append($"{GetAccessibility(method)} {staticWord} Task {methodName}");
+                    codeString.Append($"{GetAccessibility(method)} {keyword} Task {methodName}");
                 }
             }
             else
             {
                 if (method.IsGenericMethod)
                 {
-                    codeString.Append($"{GetAccessibility(method)} {staticWord} Task<{returnType}> {methodName}<{GetGenericType(method)}>");
+                    codeString.Append($"{GetAccessibility(method)} {keyword} Task<{returnType}> {methodName}<{GetGenericType(method)}>");
                 }
                 else
                 {
-                    codeString.Append($"{GetAccessibility(method)} {staticWord} Task<{returnType}> {methodName}");
+                    codeString.Append($"{GetAccessibility(method)} {keyword} Task<{returnType}> {methodName}");
                 }
             }
 
@@ -570,6 +570,21 @@ namespace IntelligentCoder
                 codeString.AppendLine($"#endif");
             }
             return codeString.ToString();
+        }
+        
+        private  string GetKeyword(IMethodSymbol method)
+        {
+            if (method.IsStatic)
+            {
+                return "static";
+            }
+
+            if (method.IsAbstract||method.IsVirtual)
+            {
+                return "virtual";
+            }
+
+            return string.Empty;
         }
 
         readonly List<string> m_needMethodIds = new List<string>();

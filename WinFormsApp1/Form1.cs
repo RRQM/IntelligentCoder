@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace WinFormsApp1
 {
-    [AsyncMethodPoster(Deep =1)]
+    [AsyncMethodPoster(Deep =100)]
     public partial class Form1 : Form
     {
         public Form1()
@@ -13,7 +13,6 @@ namespace WinFormsApp1
             InitializeComponent(); //OnAutoScaleModeChanged
             this.CloseAsync();
         }
-
         //protected Task CloseAsync()
         //{
         //    return Task.Run(() =>

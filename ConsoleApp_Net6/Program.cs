@@ -6,16 +6,41 @@ namespace ConsoleApp_Net6
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
-            TestInterface testInterface = default;
-            testInterface.AddAsync(10, 10, 10);
+            TestClass1 testClass1 = new TestClass1();
+            testClass1.Add1();
+            testClass1.Add1Async();
+            testClass1.Add2();
+            testClass1.Add2Async();
+            testClass1.Add3();
+            testClass1.MyAdd3Async();
 
-            TestClass2 testClass2 = new TestClass2();
-            testClass2.Add(10, 10);
-
-            TestStaticClassExtension.AddAsync(10,20);
         }
     }
+
+    #region 常规类
+    [AsyncMethodPoster]
+    internal partial class TestClass1
+    {
+        public int Add1()
+        {
+            return 0;
+        }
+
+        public void Add2()
+        {
+
+        }
+
+        [AsyncMethod(Template ="My{0}Async")]//测试模板生成
+        public void Add3()
+        {
+
+        }
+    }
+    #endregion
+
+    #region 接口实现
+    #endregion
 
     [AsyncMethodPoster(IgnoreMethods = new string[] { "Add2" })]
     public partial interface TestInterface
