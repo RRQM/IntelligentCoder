@@ -32,8 +32,8 @@ namespace IntelligentCoder
         public string[] IgnoreMethods { get; set; }
 
         /// <summary>
-        /// 深度继承
+        /// 检索继承深度，默认为0
         /// </summary>
-        public bool DeepInheritance { get; set; }
+        public int Deep { get; set; }
     }
 }
