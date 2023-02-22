@@ -20,7 +20,7 @@ namespace ConsoleApp_Net6
         }
     }
 
-    [AsyncMethodPoster]
+    [AsyncMethodPoster(IgnoreMethods =new string[] {"Add2" })]
     public partial interface TestInterface
     {
         /// <summary>

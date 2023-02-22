@@ -29,6 +29,11 @@ namespace IntelligentCoder
         /// <summary>
         /// 忽略方法
         /// </summary>
-        public IEnumerable<string> IgnoreMethods { get; set; }
+        public string[] IgnoreMethods { get; set; }
+
+        /// <summary>
+        /// 深度继承
+        /// </summary>
+        public bool DeepInheritance { get; set; }
     }
 }
