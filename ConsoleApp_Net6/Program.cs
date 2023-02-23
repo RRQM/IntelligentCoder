@@ -14,6 +14,9 @@ namespace ConsoleApp_Net6
             testClass1.Add3();
             testClass1.MyAdd3Async();
 
+
+            TestInterfaceImp testInterfaceImp = new TestInterfaceImp();
+            testInterfaceImp.Add2Async(10,20,30);
         }
     }
 
@@ -67,11 +70,19 @@ namespace ConsoleApp_Net6
         void Add2<T>(int a, int b, T c);
     }
 
-    //[AsyncMethodPoster(Deep =10)]
-    //public partial class TestInterfaceImp : TestInterface
-    //{
+    [AsyncMethodPoster(Deep = 10)]
+    public partial class TestInterfaceImp : TestInterface
+    {
+        public void Add<T>(int a, int b, T c)
+        {
+            throw new NotImplementedException();
+        }
 
-    //}
+        public void Add2<T>(int a, int b, T c)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     [AsyncMethodPoster]
     static partial class TestClass

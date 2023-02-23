@@ -11,8 +11,9 @@ namespace WinFormsApp1
         public Form1()
         {
             InitializeComponent(); //OnAutoScaleModeChanged
-            this.CloseAsync();
+            //this.OnClosedAsync(new EventArgs());
         }
+
         //protected Task CloseAsync()
         //{
         //    return Task.Run(() =>

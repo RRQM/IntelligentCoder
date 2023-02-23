@@ -552,9 +552,8 @@ namespace IntelligentCoder
             return methods;
         }
 
-        private void FindMethods(INamedTypeSymbol namedTypeSymbol, List<IMethodSymbol> methods, ref int deep)
+        private void FindMethods(INamedTypeSymbol namedTypeSymbol, List<IMethodSymbol> methods,ref int deep)
         {
-            Debugger.Launch();
             var list = namedTypeSymbol
                .GetMembers()
                .OfType<IMethodSymbol>()
@@ -564,8 +563,13 @@ namespace IntelligentCoder
                    {
                        return false;
                    }
-
+                   
                    string id = GetMethodId(a);
+                   if (namedTypeSymbol.IsAbstract && !m_allMethodIds.Contains(id))
+                   {
+                       return false;
+                   }
+
                    if (m_allMethodIds.Contains(id))
                    {
                        return false;
@@ -606,26 +610,18 @@ namespace IntelligentCoder
                        default:
                            return false;
                    }
+                  
                    if (!a.ReturnsVoid)
                    {
-                       a.Kind
-                       if (a.ReturnType.Name.Contains("HRESULT"))
+                       if (!IsPublic(a.ReturnType))
                        {
-
-                       }
-                       if (!IsPublic(a.ReceiverType))
-                       {
-                           if (!SymbolEqualityComparer.Default.Equals(a.ReceiverType.ContainingAssembly, this.Compilation.Assembly))
+                           if (!SymbolEqualityComparer.Default.Equals(a.ReturnType.ContainingAssembly, this.Compilation.Assembly))
                            {
                                return false;
                            }
                        }
                    }
 
-                   if (!IsPublic(a)&&(!SymbolEqualityComparer.Default.Equals(a.ContainingAssembly, this.Assembly)))
-                   {
-                       return false;
-                   }
 
                    foreach (var item in a.Parameters)
                    {
@@ -633,9 +629,9 @@ namespace IntelligentCoder
                        {
                            return false;
                        }
-                       if (!IsPublic(item))
+                       if (!IsPublic(item.Type))
                        {
-                           if (!SymbolEqualityComparer.Default.Equals(item.ContainingAssembly, this.Assembly))
+                           if (!SymbolEqualityComparer.Default.Equals(item.Type.ContainingAssembly, this.Assembly))
                            {
                                return false;
                            }
@@ -875,6 +871,26 @@ namespace IntelligentCoder
         {
             return symbol.DeclaredAccessibility == Accessibility.Public;
         }
+
+        //private bool IsPublicOrProtected(IMethodSymbol method)
+        //{
+        //    return method.DeclaredAccessibility == Accessibility.Public||
+        //        method.DeclaredAccessibility== Accessibility.Protected||
+        //        method.DeclaredAccessibility== Accessibility.ProtectedOrInternal;
+        //}
+
+        //private bool IsPublic(ITypeSymbol typeSymbol)
+        //{
+        //    if (typeSymbol.DeclaredAccessibility!= Accessibility.Public)
+        //    {
+        //        return false;
+        //    }
+        //    if (typeSymbol.ContainingType!=null)
+        //    {
+        //        return IsPublic(typeSymbol.ContainingType);
+        //    }
+        //    return true ;
+        //}
 
         private bool NewExists(IMethodSymbol method)
         {
