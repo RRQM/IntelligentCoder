@@ -16,7 +16,7 @@ namespace ConsoleApp_Net6
 
 
             TestInterfaceImp testInterfaceImp = new TestInterfaceImp();
-            testInterfaceImp.Add2Async(10,20,30);
+            testInterfaceImp.Add2Async<int>(10,20);
         }
     }
 
@@ -51,11 +51,9 @@ namespace ConsoleApp_Net6
         /// <summary>
         /// 添加
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="a"></param>
         /// <param name="b"></param>
-        /// <param name="c"></param>
-        void Add<T>(int a, int b, T c);
+        int Add(int a, int b);
     }
 
     public partial interface TestInterface
@@ -67,20 +65,20 @@ namespace ConsoleApp_Net6
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <param name="c"></param>
-        void Add2<T>(int a, int b, T c);
+        void Add2<T>(int a, int b);
     }
 
     [AsyncMethodPoster(Deep = 10)]
     public partial class TestInterfaceImp : TestInterface
     {
-        public void Add<T>(int a, int b, T c)
+        public int Add(int a, int b)
         {
-            throw new NotImplementedException();
+            return a + b;
         }
 
-        public void Add2<T>(int a, int b, T c)
+        public void Add2<T>(int a, int b)
         {
-            throw new NotImplementedException();
+            
         }
     }
 

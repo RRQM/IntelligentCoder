@@ -232,14 +232,30 @@ namespace IntelligentCoder
             {
                 codeString.AppendLine("return Task.Run(() => ");
                 codeString.AppendLine("{");
-                codeString.AppendLine($"instance.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                if (method.IsGenericMethod)
+                {
+                    codeString.AppendLine($"instance.{method.Name}<{GetGenericType(method)}>({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+                else
+                {
+                    codeString.AppendLine($"instance.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+               
                 codeString.AppendLine("});");
             }
             else
             {
                 codeString.AppendLine("return Task.Run(() => ");
                 codeString.AppendLine("{");
-                codeString.AppendLine($"return instance.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                if (method.IsGenericMethod)
+                {
+                    codeString.AppendLine($"return instance.{method.Name}<{GetGenericType(method)}>({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+                else
+                {
+                    codeString.AppendLine($"return instance.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+               
                 codeString.AppendLine("});");
             }
             codeString.AppendLine("}");
@@ -446,14 +462,30 @@ namespace IntelligentCoder
             {
                 codeString.AppendLine("return Task.Run(() => ");
                 codeString.AppendLine("{");
-                codeString.AppendLine($"{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                if (method.IsGenericMethod)
+                {
+                    codeString.AppendLine($"{method.Name}<{GetGenericType(method)}>({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+                else
+                {
+                    codeString.AppendLine($"{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+               
                 codeString.AppendLine("});");
             }
             else
             {
                 codeString.AppendLine("return Task.Run(() => ");
                 codeString.AppendLine("{");
-                codeString.AppendLine($"return {method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                if (method.IsGenericMethod)
+                {
+                    codeString.AppendLine($"return {method.Name}<{GetGenericType(method)}>({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+                else
+                {
+                    codeString.AppendLine($"return {method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+               
                 codeString.AppendLine("});");
             }
             codeString.AppendLine("}");
@@ -525,14 +557,30 @@ namespace IntelligentCoder
             {
                 codeString.AppendLine("return Task.Run(() => ");
                 codeString.AppendLine("{");
-                codeString.AppendLine($"{namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                if (method.IsGenericMethod)
+                {
+                    codeString.AppendLine($"{namedTypeSymbol.ToDisplayString()}.{method.Name}<{GetGenericType(method)}>({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+                else 
+                {
+                    codeString.AppendLine($"{namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+               
                 codeString.AppendLine("});");
             }
             else
             {
                 codeString.AppendLine("return Task.Run(() => ");
                 codeString.AppendLine("{");
-                codeString.AppendLine($"return {namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                if (method.IsGenericMethod)
+                {
+                    codeString.AppendLine($"return {namedTypeSymbol.ToDisplayString()}.{method.Name}<{GetGenericType(method)}>({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+                else
+                {
+                    codeString.AppendLine($"return {namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
+                }
+               
                 codeString.AppendLine("});");
             }
             codeString.AppendLine("}");
