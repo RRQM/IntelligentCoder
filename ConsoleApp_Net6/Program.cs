@@ -16,9 +16,13 @@ namespace ConsoleApp_Net6
 
 
             TestInterfaceImp testInterfaceImp = new TestInterfaceImp();
-            testInterfaceImp.Add2Async<int>(10,20);
+            testInterfaceImp.Add2Async<int>(10, 20);
 
-            TestStaticClassExtension.AddAsync(10,20);
+            TestStaticClassExtension.AddAsync(10, 20);
+
+            string path = "path";
+            FileAsync.CreateAsync(path);
+            FileAsync.OpenAsync(path, FileMode.Open);
         }
     }
 
@@ -80,7 +84,7 @@ namespace ConsoleApp_Net6
 
         public void Add2<T>(int a, int b)
         {
-            
+
         }
     }
 
@@ -124,5 +128,11 @@ namespace ConsoleApp_Net6
         {
             return a + b;
         }
+    }
+
+    [AsyncMethodPoster(Target = typeof(System.IO.File))]
+    static partial class FileAsync
+    {
+
     }
 }

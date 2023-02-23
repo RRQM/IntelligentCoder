@@ -216,6 +216,28 @@ partial interface IA
 }
 ```
 
+## 五、案例
+
+#### 5.1 对File类扩展
+
+众所周知，File类是CSharp里面的最重要的静态类之一，但是遗憾的是，他并没有提供任何异步方法，这使得我们在异步使用时非常麻烦，所以需要扩展异步。
+
+您只需要将下列5行代码复制到你的项目，你即可拥有FileAsync的异步类。
+
+```
+[AsyncMethodPoster(Target = typeof(System.IO.File))]
+static partial class FileAsync
+{
+
+}
+```
+
+```
+string path = "path";
+FileAsync.CreateAsync(path);
+FileAsync.OpenAsync(path, FileMode.Open);
+```
+
 
 
 
