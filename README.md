@@ -138,7 +138,7 @@ public partial class TestInterfaceImp : TestInterface
 }
 ```
 
-#### 3.3 扩展调用实例类
+#### 3.3 扩展实例调用类
 
 上述的两个方式，仅仅是用于当前编译时。而往往，更多时候是某个代码已经被编译，所以我们需要为其生成异步扩展类代码。
 
@@ -170,7 +170,31 @@ MyClass3 myClass3=new MyClass3();
 myClass3.Add3Async(10,20);
 ```
 
-## 其他
+#### 3.4 扩展调用静态类
+
+扩展静态类，操作和实例类一致，但是需要注意的是，扩展后，必须通过生成的扩展类调用。
+
+```
+[AsyncMethodPoster(Target = typeof(TestStaticClass))]
+public static partial class TestStaticClassExtension
+{
+
+}
+
+public static class TestStaticClass
+{
+    public static int Add(int a, int b)
+    {
+        return a + b;
+    }
+}
+```
+
+```
+TestStaticClassExtension.AddAsync(10,20);
+```
+
+## 四、其他
 
 除了上述功能，他还支持异步方法的模板。
 
@@ -196,15 +220,3 @@ partial interface IA
 
 
 如果你有其他好的想法，我们可以一起交流哦。
-
-
-
-
-
-
-
-
-
-
-
-
