@@ -224,7 +224,7 @@ namespace IntelligentCoder
             {
                 codeString.Append(",");//方法参数
             }
-            codeString.Append($"{string.Join(",", parameters.Select(a => $"{a.ToDisplayString()} {a.Name}"))}");//方法参数
+            codeString.Append($"{string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))}");//方法参数
             codeString.Append($")");//方法参数
             codeString.AppendLine("{");//方法开始
 
@@ -392,7 +392,7 @@ namespace IntelligentCoder
                 }
             }
 
-            codeString.Append($"({string.Join(",", parameters.Select(a => $"{a.ToDisplayString()} {a.Name}"))});");//方法参数
+            codeString.Append($"({string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))});");//方法参数
 
             if (!string.IsNullOrWhiteSpace(precompile))
             {
@@ -455,7 +455,7 @@ namespace IntelligentCoder
                 }
             }
 
-            codeString.Append($"({string.Join(",", parameters.Select(a => $"{a.ToDisplayString()} {a.Name}"))})");//方法参数
+            codeString.Append($"({string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))})");//方法参数
             codeString.AppendLine("{");//方法开始
 
             if (method.ReturnsVoid)
@@ -549,7 +549,7 @@ namespace IntelligentCoder
             }
 
             codeString.Append($"(");//方法参数
-            codeString.Append($"{string.Join(",", parameters.Select(a => $"{a.ToDisplayString()} {a.Name}"))}");//方法参数
+            codeString.Append($"{string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))}");//方法参数
             codeString.Append($")");//方法参数
             codeString.AppendLine("{");//方法开始
 
@@ -784,7 +784,7 @@ namespace IntelligentCoder
             stringBuilder.Append(method.Name);
             foreach (var item in method.Parameters)
             {
-                stringBuilder.Append(item.ToDisplayString());
+                stringBuilder.Append(item.Type.ToDisplayString());
             }
             return stringBuilder.ToString();
         }
@@ -847,7 +847,7 @@ namespace IntelligentCoder
             stringBuilder.Append(GetMethodName(method));
             foreach (var item in method.Parameters)
             {
-                stringBuilder.Append(item.ToDisplayString());
+                stringBuilder.Append(item.Type.ToDisplayString());
             }
             return stringBuilder.ToString();
         }
