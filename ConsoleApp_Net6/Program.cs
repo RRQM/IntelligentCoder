@@ -17,6 +17,8 @@ namespace ConsoleApp_Net6
 
             TestInterfaceImp testInterfaceImp = new TestInterfaceImp();
             testInterfaceImp.Add2Async<int>(10,20);
+
+            TestStaticClassExtension.AddAsync(10,20);
         }
     }
 
