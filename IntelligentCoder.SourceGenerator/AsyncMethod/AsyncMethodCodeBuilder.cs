@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
@@ -102,8 +103,8 @@ namespace IntelligentCoder
         /// <returns></returns>
         public SourceText ToSourceText()
         {
-            var code = ToString();
-            return SourceText.From(code, Encoding.UTF8);
+            string TextFormat = CSharpSyntaxTree.ParseText(ToString(), new CSharpParseOptions(LanguageVersion.CSharp8)).GetRoot().NormalizeWhitespace().SyntaxTree.GetText().ToString();
+            return SourceText.From(TextFormat, Encoding.UTF8);
         }
 
         /// <summary>
