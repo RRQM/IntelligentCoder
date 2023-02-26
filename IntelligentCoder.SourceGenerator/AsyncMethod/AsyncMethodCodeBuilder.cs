@@ -89,6 +89,14 @@ namespace IntelligentCoder
             return m_namedTypeSymbol.ToDisplayString() + "Generator";
         }
 
+        public MethodDeclarationSyntax GetMethodDeclaration(IMethodSymbol method)
+        {
+            var meth = (method.PartialImplementationPart != null) ? method.PartialImplementationPart : method;
+            var declarings = meth.DeclaringSyntaxReferences;
+            if (declarings == null || declarings.Count() == 0) return null;
+            return declarings.First().GetSyntax() as MethodDeclarationSyntax;
+        }
+
         public string GetPrecompile(IMethodSymbol method, Dictionary<string, TypedConstant> namedArguments)
         {
             if (this.m_namedArguments.TryGetValue("Precompile", out var typedConstant))
@@ -268,27 +276,6 @@ namespace IntelligentCoder
             }
             return codeString.ToString();
         }
-
-        private string GetTypeConstraintClauses(INamedTypeSymbol namedTypeSymbol)
-        {
-            if (!namedTypeSymbol.IsGenericType)
-            {
-                return string.Empty;
-            }
-            foreach (var item in namedTypeSymbol.DeclaringSyntaxReferences)
-            {
-                if (item.GetSyntax() is TypeDeclarationSyntax typeDeclarationSyntax)
-                {
-                    if (typeDeclarationSyntax.ConstraintClauses.Count>0)
-                    {
-                        return typeDeclarationSyntax.ConstraintClauses.ToFullString();
-                    }
-                }
-            }
-
-            return string.Empty;
-        }
-
 
         private void BuildIntereface(StringBuilder builder)
         {
@@ -625,11 +612,6 @@ namespace IntelligentCoder
             return methods;
         }
 
-        private bool IsInterface(INamedTypeSymbol namedTypeSymbol)
-        {
-            return namedTypeSymbol.TypeKind == TypeKind.Interface;
-        }
-
         private void FindMethods(INamedTypeSymbol namedTypeSymbol, List<IMethodSymbol> methods, ref int deep)
         {
             var list = namedTypeSymbol
@@ -788,11 +770,6 @@ namespace IntelligentCoder
             return string.Empty;
         }
 
-        private string GetGenericType(IMethodSymbol method)
-        {
-            return string.Join(",", method.TypeParameters.Select(a => a.ToDisplayString()));
-        }
-
         private string GetConstraintClauses(IMethodSymbol method)
         {
             if (!method.IsGenericMethod)
@@ -809,6 +786,11 @@ namespace IntelligentCoder
                 return string.Empty;
             }
             return syntaxNode.ConstraintClauses.ToFullString();
+        }
+
+        private string GetGenericType(IMethodSymbol method)
+        {
+            return string.Join(",", method.TypeParameters.Select(a => a.ToDisplayString()));
         }
 
         private string GetKeyword(IMethodSymbol method)
@@ -828,13 +810,7 @@ namespace IntelligentCoder
 
             return string.Empty;
         }
-        public MethodDeclarationSyntax GetMethodDeclaration(IMethodSymbol method)
-        {
-            var meth = (method.PartialImplementationPart != null) ? method.PartialImplementationPart : method;
-            var declarings = meth.DeclaringSyntaxReferences;
-            if (declarings == null || declarings.Count() == 0) return null;
-            return declarings.First().GetSyntax() as MethodDeclarationSyntax;
-        }
+
         private string GetMethodId(IMethodSymbol method)
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -914,6 +890,25 @@ namespace IntelligentCoder
             return method.ReturnType.ToDisplayString();
         }
 
+        private string GetTypeConstraintClauses(INamedTypeSymbol namedTypeSymbol)
+        {
+            if (!namedTypeSymbol.IsGenericType)
+            {
+                return string.Empty;
+            }
+            foreach (var item in namedTypeSymbol.DeclaringSyntaxReferences)
+            {
+                if (item.GetSyntax() is TypeDeclarationSyntax typeDeclarationSyntax)
+                {
+                    if (typeDeclarationSyntax.ConstraintClauses.Count>0)
+                    {
+                        return typeDeclarationSyntax.ConstraintClauses.ToFullString();
+                    }
+                }
+            }
+
+            return string.Empty;
+        }
         private bool HasFlags(int value, int flag)
         {
             return (value & flag) == flag;
@@ -962,6 +957,10 @@ namespace IntelligentCoder
             return false;
         }
 
+        private bool IsInterface(INamedTypeSymbol namedTypeSymbol)
+        {
+            return namedTypeSymbol.TypeKind == TypeKind.Interface;
+        }
         private bool IsInternal(ISymbol symbol)
         {
             return symbol.DeclaredAccessibility == Accessibility.Internal;

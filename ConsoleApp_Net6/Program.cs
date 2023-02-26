@@ -51,6 +51,10 @@ namespace ConsoleApp_Net6
     #endregion
 
     #region 接口实现
+
+    /// <summary>
+    /// <inheritdoc cref="TestInterface"/>
+    /// </summary>
     [AsyncMethodPoster]
     public partial interface TestInterface
     {
@@ -76,6 +80,12 @@ namespace ConsoleApp_Net6
     [AsyncMethodPoster(Deep = 10)]
     public partial class TestInterfaceImp : TestInterface
     {
+        /// <summary>
+        /// <inheritdoc cref="TestInterface.Add(int, int)"/>
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public int Add(int a, int b)
         {
             return a + b;
