@@ -2,7 +2,7 @@
 
 namespace ConsoleApp_Net6
 {
-    internal partial class Program
+    public partial class Program
     {
         static void Main(string[] args)
         {
@@ -14,9 +14,11 @@ namespace ConsoleApp_Net6
             testClass1.Add3();
             testClass1.MyAdd3Async();
 
+            TestClass2 testClass2 = new TestClass2();
+            testClass2.Add(10,20);
 
             TestInterfaceImp testInterfaceImp = new TestInterfaceImp();
-            testInterfaceImp.Add2Async<int>(10, 20);
+            //testInterfaceImp.Add2Async<Program>(10, 20);
 
             TestStaticClassExtension.AddAsync(10, 20);
 
@@ -49,8 +51,6 @@ namespace ConsoleApp_Net6
     #endregion
 
     #region 接口实现
-    #endregion
-
     [AsyncMethodPoster]
     public partial interface TestInterface
     {
@@ -70,8 +70,7 @@ namespace ConsoleApp_Net6
         /// <typeparam name="T"></typeparam>
         /// <param name="a"></param>
         /// <param name="b"></param>
-        /// <param name="c"></param>
-        void Add2<T>(int a, int b);
+        void Add2<T>(int a, int b) where T : class;
     }
 
     [AsyncMethodPoster(Deep = 10)]
@@ -82,21 +81,14 @@ namespace ConsoleApp_Net6
             return a + b;
         }
 
-        public void Add2<T>(int a, int b)
+        public void Add2<T>(int a, int b) where T : class
         {
 
         }
     }
+    #endregion
 
-    [AsyncMethodPoster]
-    static partial class TestClass
-    {
-        public static int Add(int a, int b)
-        {
-            return a + b;
-        }
-    }
-
+    #region 常规类扩展
     public class TestClass2
     {
         public int Add(int a, int b)
@@ -110,14 +102,16 @@ namespace ConsoleApp_Net6
         }
     }
 
-    [AsyncMethodPoster(Target = typeof(TestInterface))]
+    [AsyncMethodPoster(Target = typeof(TestClass2))]
     public static partial class TestClass2Extension
     {
 
     }
+    #endregion
 
+    #region 静态类扩展
     [AsyncMethodPoster(Target = typeof(TestStaticClass))]
-    public static partial class TestStaticClassExtension
+    internal static partial class TestStaticClassExtension
     {
 
     }
@@ -129,6 +123,7 @@ namespace ConsoleApp_Net6
             return a + b;
         }
     }
+    #endregion
 
     [AsyncMethodPoster(Target = typeof(System.IO.File))]
     static partial class FileAsync

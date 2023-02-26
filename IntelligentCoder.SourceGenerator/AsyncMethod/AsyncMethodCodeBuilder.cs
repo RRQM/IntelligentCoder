@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
@@ -135,7 +136,7 @@ namespace IntelligentCoder
 
             if (GetNamespace() == null)
             {
-                if (m_namedTypeSymbol.TypeKind == TypeKind.Interface)
+                if (IsInterface(this.m_namedTypeSymbol))
                 {
                     BuildIntereface(builder);
                 }
@@ -148,7 +149,7 @@ namespace IntelligentCoder
             {
                 builder.AppendLine($"namespace {GetNamespace()}");
                 builder.AppendLine("{");
-                if (m_namedTypeSymbol.TypeKind == TypeKind.Interface)
+                if (IsInterface(this.m_namedTypeSymbol))
                 {
                     BuildIntereface(builder);
                 }
@@ -226,7 +227,7 @@ namespace IntelligentCoder
                 codeString.Append(",");//方法参数
             }
             codeString.Append($"{string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))}");//方法参数
-            codeString.Append($")");//方法参数
+            codeString.Append($"){GetConstraintClauses(method)}");//方法参数
             codeString.AppendLine("{");//方法开始
 
             if (method.ReturnsVoid)
@@ -241,7 +242,7 @@ namespace IntelligentCoder
                 {
                     codeString.AppendLine($"instance.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
                 }
-               
+
                 codeString.AppendLine("});");
             }
             else
@@ -256,7 +257,7 @@ namespace IntelligentCoder
                 {
                     codeString.AppendLine($"return instance.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
                 }
-               
+
                 codeString.AppendLine("});");
             }
             codeString.AppendLine("}");
@@ -268,9 +269,30 @@ namespace IntelligentCoder
             return codeString.ToString();
         }
 
+        private string GetTypeConstraintClauses(INamedTypeSymbol namedTypeSymbol)
+        {
+            if (!namedTypeSymbol.IsGenericType)
+            {
+                return string.Empty;
+            }
+            foreach (var item in namedTypeSymbol.DeclaringSyntaxReferences)
+            {
+                if (item.GetSyntax() is TypeDeclarationSyntax typeDeclarationSyntax)
+                {
+                    if (typeDeclarationSyntax.ConstraintClauses.Count>0)
+                    {
+                        return typeDeclarationSyntax.ConstraintClauses.ToFullString();
+                    }
+                }
+            }
+
+            return string.Empty;
+        }
+
+
         private void BuildIntereface(StringBuilder builder)
         {
-            builder.AppendLine($"partial interface {GetClassName()}");
+            builder.AppendLine($"partial interface {GetClassName()} {GetTypeConstraintClauses(this.m_namedTypeSymbol)}");
             builder.AppendLine("{");
             //Debugger.Launch();
 
@@ -374,6 +396,8 @@ namespace IntelligentCoder
             {
                 if (method.IsGenericMethod)
                 {
+                    //Debugger.Launch();
+                    var attrib = method.GetAttributes();
                     codeString.Append($"{accessibility} Task {methodName}<{GetGenericType(method)}>");
                 }
                 else
@@ -393,7 +417,7 @@ namespace IntelligentCoder
                 }
             }
 
-            codeString.Append($"({string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))});");//方法参数
+            codeString.Append($"({string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))}){GetConstraintClauses(method)};");//方法参数
 
             if (!string.IsNullOrWhiteSpace(precompile))
             {
@@ -456,7 +480,7 @@ namespace IntelligentCoder
                 }
             }
 
-            codeString.Append($"({string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))})");//方法参数
+            codeString.Append($"({string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))}){GetConstraintClauses(method)}");//方法参数
             codeString.AppendLine("{");//方法开始
 
             if (method.ReturnsVoid)
@@ -471,7 +495,7 @@ namespace IntelligentCoder
                 {
                     codeString.AppendLine($"{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
                 }
-               
+
                 codeString.AppendLine("});");
             }
             else
@@ -486,7 +510,7 @@ namespace IntelligentCoder
                 {
                     codeString.AppendLine($"return {method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
                 }
-               
+
                 codeString.AppendLine("});");
             }
             codeString.AppendLine("}");
@@ -551,7 +575,7 @@ namespace IntelligentCoder
 
             codeString.Append($"(");//方法参数
             codeString.Append($"{string.Join(",", parameters.Select(a => $"{a.Type.ToDisplayString()} {a.Name}"))}");//方法参数
-            codeString.Append($")");//方法参数
+            codeString.Append($"){GetConstraintClauses(method)}");//方法参数
             codeString.AppendLine("{");//方法开始
 
             if (method.ReturnsVoid)
@@ -562,11 +586,11 @@ namespace IntelligentCoder
                 {
                     codeString.AppendLine($"{namedTypeSymbol.ToDisplayString()}.{method.Name}<{GetGenericType(method)}>({string.Join(",", parameters.Select(a => a.Name))});");
                 }
-                else 
+                else
                 {
                     codeString.AppendLine($"{namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
                 }
-               
+
                 codeString.AppendLine("});");
             }
             else
@@ -581,7 +605,7 @@ namespace IntelligentCoder
                 {
                     codeString.AppendLine($"return {namedTypeSymbol.ToDisplayString()}.{method.Name}({string.Join(",", parameters.Select(a => a.Name))});");
                 }
-               
+
                 codeString.AppendLine("});");
             }
             codeString.AppendLine("}");
@@ -601,7 +625,12 @@ namespace IntelligentCoder
             return methods;
         }
 
-        private void FindMethods(INamedTypeSymbol namedTypeSymbol, List<IMethodSymbol> methods,ref int deep)
+        private bool IsInterface(INamedTypeSymbol namedTypeSymbol)
+        {
+            return namedTypeSymbol.TypeKind == TypeKind.Interface;
+        }
+
+        private void FindMethods(INamedTypeSymbol namedTypeSymbol, List<IMethodSymbol> methods, ref int deep)
         {
             var list = namedTypeSymbol
                .GetMembers()
@@ -612,12 +641,12 @@ namespace IntelligentCoder
                    {
                        return false;
                    }
-                   
+
                    string id = GetMethodId(a);
-                   if (namedTypeSymbol.IsAbstract && !m_allMethodIds.Contains(id))
-                   {
-                       return false;
-                   }
+                   //if (IsInterface(namedTypeSymbol) && !m_allMethodIds.Contains(id))
+                   //{
+                   //    return false;
+                   //}
 
                    if (m_allMethodIds.Contains(id))
                    {
@@ -659,7 +688,7 @@ namespace IntelligentCoder
                        default:
                            return false;
                    }
-                  
+
                    if (!a.ReturnsVoid)
                    {
                        if (!IsPublic(a.ReturnType))
@@ -714,13 +743,13 @@ namespace IntelligentCoder
                 }
             }
 
-            foreach (var item in namedTypeSymbol.Interfaces)
-            {
-                if (IsPublic(item) || SymbolEqualityComparer.Default.Equals(item.ContainingAssembly, this.Compilation.Assembly))
-                {
-                    FindMethods(item, methods, ref deep);
-                }
-            }
+            //foreach (var item in namedTypeSymbol.Interfaces)
+            //{
+            //    if (IsPublic(item) || SymbolEqualityComparer.Default.Equals(item.ContainingAssembly, this.Compilation.Assembly))
+            //    {
+            //        FindMethods(item, methods, ref deep);
+            //    }
+            //}
         }
 
         private string GetAccessibility(ISymbol symbol)
@@ -764,13 +793,34 @@ namespace IntelligentCoder
             return string.Join(",", method.TypeParameters.Select(a => a.ToDisplayString()));
         }
 
+        private string GetConstraintClauses(IMethodSymbol method)
+        {
+            if (!method.IsGenericMethod)
+            {
+                return string.Empty;
+            }
+            var syntaxNode = GetMethodDeclaration(method);
+            if (syntaxNode == null)
+            {
+                return string.Empty;
+            }
+            if (syntaxNode.ConstraintClauses.Count == 0)
+            {
+                return string.Empty;
+            }
+            return syntaxNode.ConstraintClauses.ToFullString();
+        }
+
         private string GetKeyword(IMethodSymbol method)
         {
             if (method.IsStatic)
             {
                 return "static";
             }
-
+            if (this.m_namedTypeSymbol.IsSealed)
+            {
+                return string.Empty;
+            }
             if (method.IsAbstract || method.IsVirtual)
             {
                 return "virtual";
@@ -778,7 +828,13 @@ namespace IntelligentCoder
 
             return string.Empty;
         }
-
+        public MethodDeclarationSyntax GetMethodDeclaration(IMethodSymbol method)
+        {
+            var meth = (method.PartialImplementationPart != null) ? method.PartialImplementationPart : method;
+            var declarings = meth.DeclaringSyntaxReferences;
+            if (declarings == null || declarings.Count() == 0) return null;
+            return declarings.First().GetSyntax() as MethodDeclarationSyntax;
+        }
         private string GetMethodId(IMethodSymbol method)
         {
             StringBuilder stringBuilder = new StringBuilder();
