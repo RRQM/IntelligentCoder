@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -17,15 +16,15 @@ namespace IntelligentCoder
     /// </summary>
     internal sealed class AsyncMethodCodeBuilder : IEquatable<AsyncMethodCodeBuilder>
     {
-        private readonly List<string> m_allMethodIds = new List<string>();
-        private readonly Dictionary<string, TypedConstant> m_namedArguments;
-
         /// <summary>
         /// 接口符号
         /// </summary>
         private readonly INamedTypeSymbol m_namedTypeSymbol;
 
-        private readonly List<string> m_needMethodIds = new List<string>();
+        private List<string> m_allMethodIds;
+        private List<string> m_ignoreMethods;
+        private Dictionary<string, TypedConstant> m_namedArguments;
+        private List<string> m_needMethodIds;
 
         /// <summary>
         /// RpcApi代码构建器
@@ -35,23 +34,10 @@ namespace IntelligentCoder
         {
             m_namedTypeSymbol = namedTypeSymbol;
             Compilation = compilation;
-            AttributeData attributeData = namedTypeSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.AsyncMethodPosterAttributeTypeName);
-
-            m_namedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
-
-            if (this.m_namedArguments.TryGetValue("IgnoreMethods", out var typedConstant))
-            {
-                foreach (var item in typedConstant.Values)
-                {
-                    this.IgnoreMethods.Add(item.Value.ToString());
-                }
-            }
         }
 
         public IAssemblySymbol Assembly => this.m_namedTypeSymbol.ContainingAssembly;
         public Compilation Compilation { get; }
-
-        public List<string> IgnoreMethods { get; } = new List<string>();
 
         /// <summary>
         /// using
@@ -122,57 +108,74 @@ namespace IntelligentCoder
         /// <returns></returns>
         public override string ToString()
         {
-            //Debugger.Launch();
             var builder = new StringBuilder();
-
-            string precompile = null;
-            if (this.m_namedArguments.TryGetValue("Precompile", out TypedConstant typedConstant))
-            {
-                precompile = typedConstant.Value?.ToString();
-            }
-
-            if (!string.IsNullOrWhiteSpace(precompile))
-            {
-                builder.AppendLine();
-                builder.AppendLine($"#if {precompile}");
-            }
-
             foreach (var item in Usings)
             {
                 builder.AppendLine(item);
             }
-
-            if (GetNamespace() == null)
+            foreach (var attributeData in this.m_namedTypeSymbol.GetAttributes().Where(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.AsyncMethodPosterAttributeTypeName))
             {
-                if (IsInterface(this.m_namedTypeSymbol))
+                m_ignoreMethods = new List<string>();
+                m_allMethodIds = new List<string>();
+                m_needMethodIds = new List<string>();
+
+                m_namedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
+
+                if (this.m_namedArguments.TryGetValue("IgnoreMethods", out var typedConstant))
                 {
-                    BuildIntereface(builder);
+                    foreach (var item in typedConstant.Values)
+                    {
+                        this.m_ignoreMethods.Add(item.Value.ToString());
+                    }
+                }
+
+                //Debugger.Launch();
+
+                string precompile = null;
+                if (this.m_namedArguments.TryGetValue("Precompile", out typedConstant))
+                {
+                    precompile = typedConstant.Value?.ToString();
+                }
+
+                if (!string.IsNullOrWhiteSpace(precompile))
+                {
+                    builder.AppendLine();
+                    builder.AppendLine($"#if {precompile}");
+                }
+
+                if (GetNamespace() == null)
+                {
+                    if (IsInterface(this.m_namedTypeSymbol))
+                    {
+                        BuildIntereface(builder);
+                    }
+                    else
+                    {
+                        BuildMethod(builder);
+                    }
                 }
                 else
                 {
-                    BuildMethod(builder);
+                    builder.AppendLine($"namespace {GetNamespace()}");
+                    builder.AppendLine("{");
+                    if (IsInterface(this.m_namedTypeSymbol))
+                    {
+                        BuildIntereface(builder);
+                    }
+                    else
+                    {
+                        BuildMethod(builder);
+                    }
+                    builder.AppendLine("}");
                 }
-            }
-            else
-            {
-                builder.AppendLine($"namespace {GetNamespace()}");
-                builder.AppendLine("{");
-                if (IsInterface(this.m_namedTypeSymbol))
+
+                if (!string.IsNullOrWhiteSpace(precompile))
                 {
-                    BuildIntereface(builder);
+                    builder.AppendLine();
+                    builder.AppendLine("#endif");
                 }
-                else
-                {
-                    BuildMethod(builder);
-                }
-                builder.AppendLine("}");
             }
 
-            if (!string.IsNullOrWhiteSpace(precompile))
-            {
-                builder.AppendLine();
-                builder.AppendLine("#endif");
-            }
             // System.Diagnostics.Debugger.Launch();
             return builder.ToString();
         }
@@ -641,7 +644,7 @@ namespace IntelligentCoder
                        return false;
                    }
 
-                   if (this.IgnoreMethods.Contains(a.Name))
+                   if (this.m_ignoreMethods.Contains(a.Name))
                    {
                        return false;
                    }
@@ -681,7 +684,6 @@ namespace IntelligentCoder
                            }
                        }
                    }
-
 
                    foreach (var item in a.Parameters)
                    {
@@ -900,7 +902,7 @@ namespace IntelligentCoder
             {
                 if (item.GetSyntax() is TypeDeclarationSyntax typeDeclarationSyntax)
                 {
-                    if (typeDeclarationSyntax.ConstraintClauses.Count>0)
+                    if (typeDeclarationSyntax.ConstraintClauses.Count > 0)
                     {
                         return typeDeclarationSyntax.ConstraintClauses.ToFullString();
                     }
@@ -909,6 +911,7 @@ namespace IntelligentCoder
 
             return string.Empty;
         }
+
         private bool HasFlags(int value, int flag)
         {
             return (value & flag) == flag;
@@ -961,6 +964,7 @@ namespace IntelligentCoder
         {
             return namedTypeSymbol.TypeKind == TypeKind.Interface;
         }
+
         private bool IsInternal(ISymbol symbol)
         {
             return symbol.DeclaredAccessibility == Accessibility.Internal;
