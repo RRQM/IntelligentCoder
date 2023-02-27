@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -87,7 +88,11 @@ namespace IntelligentCoder
         {
             if (this.m_namedArguments.TryGetValue("Precompile", out var typedConstant))
             {
-                return typedConstant.Value?.ToString();
+                return null;
+            }
+            if (namedArguments.TryGetValue("Precompile", out typedConstant))
+            {
+               return typedConstant.Value?.ToString();
             }
             return null;
         }
@@ -208,6 +213,7 @@ namespace IntelligentCoder
                 codeString.AppendLine();
                 codeString.AppendLine($"#if {precompile}");
             }
+            codeString.AppendLine(GetComments(method));
             if (method.ReturnsVoid)
             {
                 if (method.IsGenericMethod)
@@ -349,6 +355,7 @@ namespace IntelligentCoder
             builder.AppendLine("}");
         }
 
+    
         private string BuildMethodInterface(IMethodSymbol method)
         {
             //Debugger.Launch();
@@ -540,6 +547,7 @@ namespace IntelligentCoder
                 codeString.AppendLine();
                 codeString.AppendLine($"#if {precompile}");
             }
+            codeString.AppendLine(GetComments(method));
             if (method.ReturnsVoid)
             {
                 if (method.IsGenericMethod)
@@ -628,11 +636,6 @@ namespace IntelligentCoder
                    }
 
                    string id = GetMethodId(a);
-                   //if (IsInterface(namedTypeSymbol) && !m_allMethodIds.Contains(id))
-                   //{
-                   //    return false;
-                   //}
-
                    if (m_allMethodIds.Contains(id))
                    {
                        return false;
@@ -648,9 +651,14 @@ namespace IntelligentCoder
                    {
                        return false;
                    }
+                   var flags = GetMethodFlags();
                    switch (a.DeclaredAccessibility)
                    {
                        case Accessibility.Private:
+                           if (!flags.HasFlag(MemberFlags.Private))
+                           {
+                               return false;
+                           }
                            if (!SymbolEqualityComparer.Default.Equals(namedTypeSymbol, this.m_namedTypeSymbol))
                            {
                                return false;
@@ -660,6 +668,10 @@ namespace IntelligentCoder
                        case Accessibility.ProtectedOrInternal:
                        case Accessibility.ProtectedAndInternal:
                        case Accessibility.Internal:
+                           if (!flags.HasFlag(MemberFlags.Internal))
+                           {
+                               return false;
+                           }
                            if (!SymbolEqualityComparer.Default.Equals(a.ContainingAssembly, this.Assembly))
                            {
                                return false;
@@ -667,7 +679,20 @@ namespace IntelligentCoder
                            break;
 
                        case Accessibility.Protected:
+                           {
+                               if (!flags.HasFlag(MemberFlags.Protected))
+                               {
+                                   return false;
+                               }
+                               break;
+                           }
                        case Accessibility.Public:
+                           {
+                               if (!flags.HasFlag(MemberFlags.Public))
+                               {
+                                   return false;
+                               }
+                           }
                            break;
 
                        default:
@@ -769,7 +794,18 @@ namespace IntelligentCoder
 
         private string GetComments(IMethodSymbol method)
         {
-            return string.Empty;
+            //if (method.IsGenericMethod)
+            //{
+
+            //}
+            //else
+            //{ 
+            ////method.ContainingType
+            //}
+            //Debugger.Launch();
+            //var s = method.ToDisplayString();
+            string cref= method.ToDisplayString().Replace("<", "{").Replace(">", "}");
+            return $"/// <inheritdoc cref=\"{cref}\"/>";
         }
 
         private string GetConstraintClauses(IMethodSymbol method)
@@ -837,6 +873,18 @@ namespace IntelligentCoder
             else
             {
                 return method.Name + "Async";
+            }
+        }
+
+        private MemberFlags GetMethodFlags()
+        {
+            if (m_namedArguments.TryGetValue("Flags", out var typedConstant))
+            {
+                return (MemberFlags)typedConstant.Value;
+            }
+            else
+            {
+                return MemberFlags.Internal| MemberFlags.Public| MemberFlags.Protected| MemberFlags.Private;
             }
         }
 

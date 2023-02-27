@@ -18,7 +18,7 @@ namespace ConsoleApp_Net6
             testClass2.Add(10,20);
 
             TestInterfaceImp testInterfaceImp = new TestInterfaceImp();
-            //testInterfaceImp.Add2Async<Program>(10, 20);
+            testInterfaceImp.Add2Async<Program>(10, 20);
 
             TestStaticClassExtension.AddAsync(10, 20);
 
@@ -52,10 +52,9 @@ namespace ConsoleApp_Net6
 
     #region 接口实现
 
-    /// <summary>
-    /// <inheritdoc cref="TestInterface"/>
-    /// </summary>
+    /// <inheritdoc cref = "System.IO.File.AppendAllLines(string, IEnumerable{string})"/>
     [AsyncMethodPoster]
+    [AsyncMethodPoster(Precompile ="NET8")]
     public partial interface TestInterface
     {
         /// <summary>
@@ -91,6 +90,12 @@ namespace ConsoleApp_Net6
             return a + b;
         }
 
+        /// <summary>
+        /// asdsa
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
         public void Add2<T>(int a, int b) where T : class
         {
 
