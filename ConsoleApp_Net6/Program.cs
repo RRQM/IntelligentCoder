@@ -15,7 +15,7 @@ namespace ConsoleApp_Net6
             testClass1.MyAdd3Async();
 
             TestClass2 testClass2 = new TestClass2();
-            testClass2.Add(10,20);
+            testClass2.Add(10, 20);
 
             TestInterfaceImp testInterfaceImp = new TestInterfaceImp();
             testInterfaceImp.Add2Async<Program>(10, 20);
@@ -54,7 +54,7 @@ namespace ConsoleApp_Net6
 
     /// <inheritdoc cref = "System.IO.File.AppendAllLines(string, IEnumerable{string})"/>
     [AsyncMethodPoster]
-    [AsyncMethodPoster(Precompile ="NET8")]
+    [AsyncMethodPoster(Precompile = "NET8")]
     public partial interface TestInterface
     {
         /// <summary>
@@ -102,6 +102,15 @@ namespace ConsoleApp_Net6
 
         }
     }
+    #endregion
+
+    #region 泛型接口
+    /// <summary>
+    /// 缓存键值
+    /// </summary>
+    [IntelligentCoder.AsyncMethodPoster(Flags = IntelligentCoder.MemberFlags.Public)]
+    public interface ICache<TKey, TValue>
+    { }
     #endregion
 
     #region 常规类扩展

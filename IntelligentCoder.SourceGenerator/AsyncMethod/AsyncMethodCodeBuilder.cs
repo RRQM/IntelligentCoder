@@ -73,7 +73,7 @@ namespace IntelligentCoder
 
         public string GetFileName()
         {
-            return m_namedTypeSymbol.ToDisplayString() + "Generator";
+            return m_namedTypeSymbol.ToDisplayString() + "Generator".Replace("<","").Replace(">", "");
         }
 
         public MethodDeclarationSyntax GetMethodDeclaration(IMethodSymbol method)
@@ -156,7 +156,7 @@ namespace IntelligentCoder
                     }
                     else
                     {
-                        BuildMethod(builder);
+                        BuildClass(builder);
                     }
                 }
                 else
@@ -169,7 +169,7 @@ namespace IntelligentCoder
                     }
                     else
                     {
-                        BuildMethod(builder);
+                        BuildClass(builder);
                     }
                     builder.AppendLine("}");
                 }
@@ -286,9 +286,27 @@ namespace IntelligentCoder
             return codeString.ToString();
         }
 
+        private string GetGenericTypeString(INamedTypeSymbol namedTypeSymbol)
+        {
+            if (!namedTypeSymbol .IsGenericType)
+            {
+                return string.Empty;
+            }
+            return $"<{GetGenericType(namedTypeSymbol)}>"; 
+        }
+
         private void BuildIntereface(StringBuilder builder)
         {
-            builder.AppendLine($"partial interface {GetClassName()} {GetTypeConstraintClauses(this.m_namedTypeSymbol)}");
+            if (this.m_namedTypeSymbol.IsGenericType)
+            {
+                Debugger.Launch();
+                builder.AppendLine($"partial interface {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>  {GetTypeConstraintClauses(this.m_namedTypeSymbol)}");
+            }
+            else
+            {
+                builder.AppendLine($"partial interface {GetClassName()}");
+            }
+           
             builder.AppendLine("{");
             //Debugger.Launch();
 
@@ -301,15 +319,29 @@ namespace IntelligentCoder
             builder.AppendLine("}");
         }
 
-        private void BuildMethod(StringBuilder builder)
+        private void BuildClass(StringBuilder builder)
         {
             if (this.m_namedTypeSymbol.IsStatic)
             {
-                builder.AppendLine($"static partial class {GetClassName()}");
+                if (this.m_namedTypeSymbol.IsGenericType)
+                {
+                    builder.AppendLine($"static partial class {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>  {GetTypeConstraintClauses(this.m_namedTypeSymbol)}");
+                }
+                else
+                {
+                    builder.AppendLine($"static partial class {GetClassName()}");
+                }
             }
             else
             {
-                builder.AppendLine($"partial class {GetClassName()}");
+                if (this.m_namedTypeSymbol.IsGenericType)
+                {
+                    builder.AppendLine($"partial class {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>  {GetTypeConstraintClauses(this.m_namedTypeSymbol)}");
+                }
+                else
+                {
+                    builder.AppendLine($"partial class {GetClassName()}");
+                }
             }
 
             builder.AppendLine("{");
@@ -828,6 +860,11 @@ namespace IntelligentCoder
         private string GetGenericType(IMethodSymbol method)
         {
             return string.Join(",", method.TypeParameters.Select(a => a.ToDisplayString()));
+        }
+        
+        private string GetGenericType(INamedTypeSymbol  namedTypeSymbol)
+        {
+            return string.Join(",", namedTypeSymbol.TypeParameters.Select(a => a.ToDisplayString()));
         }
 
         private string GetKeyword(IMethodSymbol method)
