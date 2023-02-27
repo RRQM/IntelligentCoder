@@ -33,6 +33,12 @@ namespace IntelligentCoder
         public string Template { get; set; }
     }
 
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    internal class AsyncMethodIgnoreAttribute : Attribute
+    {
+
+    }
+
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct, AllowMultiple = true)]
     internal class AsyncMethodPosterAttribute : AsyncMethodAttribute
     {

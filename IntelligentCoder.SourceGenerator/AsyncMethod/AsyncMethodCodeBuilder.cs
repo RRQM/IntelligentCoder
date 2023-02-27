@@ -651,6 +651,10 @@ namespace IntelligentCoder
                    {
                        return false;
                    }
+                   if (IsIgnore(a))
+                   {
+                       return false;
+                   }
                    var flags = GetMethodFlags();
                    switch (a.DeclaredAccessibility)
                    {
@@ -794,18 +798,13 @@ namespace IntelligentCoder
 
         private string GetComments(IMethodSymbol method)
         {
-            //if (method.IsGenericMethod)
-            //{
-
-            //}
-            //else
-            //{ 
-            ////method.ContainingType
-            //}
-            //Debugger.Launch();
-            //var s = method.ToDisplayString();
             string cref= method.ToDisplayString().Replace("<", "{").Replace(">", "}");
             return $"/// <inheritdoc cref=\"{cref}\"/>";
+        } 
+        
+        private bool IsIgnore(IMethodSymbol method)
+        {
+           return method.GetAttributes().FirstOrDefault(a=>a.AttributeClass.ToDisplayString()== "IntelligentCoder.AsyncMethodIgnoreAttribute") is not null;
         }
 
         private string GetConstraintClauses(IMethodSymbol method)

@@ -62,6 +62,7 @@ namespace ConsoleApp_Net6
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
+        [AsyncMethodIgnore]
         int Add(int a, int b);
     }
 
