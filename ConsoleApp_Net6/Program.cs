@@ -109,7 +109,7 @@ namespace ConsoleApp_Net6
     /// 缓存键值
     /// </summary>
     [IntelligentCoder.AsyncMethodPoster(Flags = IntelligentCoder.MemberFlags.Public)]
-    public interface ICache<TKey, TValue>
+    public partial interface ICache<TKey, TValue>
     { }
     #endregion
 

@@ -106,7 +106,7 @@ namespace IntelligentCoder
                 {
                     if (!strings.Contains(builder.GetFileName()))
                     {
-                        context.AddSource($"{builder.GetFileName()}.g.cs", builder.ToSourceText());
+                        context.AddSource(builder.GetFileName(), builder.ToSourceText());
                         strings.Add(builder.GetFileName());
                     }
                 }

@@ -73,7 +73,8 @@ namespace IntelligentCoder
 
         public string GetFileName()
         {
-            return m_namedTypeSymbol.ToDisplayString() + "Generator".Replace("<","").Replace(">", "");
+            
+            return (m_namedTypeSymbol.ToDisplayString() + "Generator.g.cs").Replace("<","").Replace(">", "");
         }
 
         public MethodDeclarationSyntax GetMethodDeclaration(IMethodSymbol method)
@@ -299,7 +300,7 @@ namespace IntelligentCoder
         {
             if (this.m_namedTypeSymbol.IsGenericType)
             {
-                Debugger.Launch();
+                //Debugger.Launch();
                 builder.AppendLine($"partial interface {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>  {GetTypeConstraintClauses(this.m_namedTypeSymbol)}");
             }
             else
