@@ -301,7 +301,7 @@ namespace IntelligentCoder
             if (this.m_namedTypeSymbol.IsGenericType)
             {
                 //Debugger.Launch();
-                builder.AppendLine($"partial interface {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>  {GetTypeConstraintClauses(this.m_namedTypeSymbol)}");
+                builder.AppendLine($"partial interface {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>");
             }
             else
             {
@@ -326,7 +326,7 @@ namespace IntelligentCoder
             {
                 if (this.m_namedTypeSymbol.IsGenericType)
                 {
-                    builder.AppendLine($"static partial class {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>  {GetTypeConstraintClauses(this.m_namedTypeSymbol)}");
+                    builder.AppendLine($"static partial class {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>");
                 }
                 else
                 {
@@ -337,7 +337,7 @@ namespace IntelligentCoder
             {
                 if (this.m_namedTypeSymbol.IsGenericType)
                 {
-                    builder.AppendLine($"partial class {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>  {GetTypeConstraintClauses(this.m_namedTypeSymbol)}");
+                    builder.AppendLine($"partial class {GetClassName()} <{GetGenericType(this.m_namedTypeSymbol)}>");
                 }
                 else
                 {
