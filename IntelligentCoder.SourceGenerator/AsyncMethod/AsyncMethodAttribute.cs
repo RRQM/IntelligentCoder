@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace IntelligentCoder
 {
@@ -51,9 +49,9 @@ namespace IntelligentCoder
     [Flags]
     internal enum MemberFlags
     {
-        Public=1,
-        Protected=2,
-        Private=4,
-        Internal=8
+        Public = 1,
+        Protected = 2,
+        Private = 4,
+        Internal = 8
     }
 }

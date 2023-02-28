@@ -1,7 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace IntelligentCoder
 {
@@ -36,7 +33,7 @@ namespace IntelligentCoder
         {
             foreach (var attr in symbol.GetAttributes())
             {
-                if (attr.AttributeClass?.ToDisplayString()== attributeFullName)
+                if (attr.AttributeClass?.ToDisplayString() == attributeFullName)
                 {
                     return true;
                 }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace IntelligentCoder
@@ -80,7 +79,7 @@ namespace IntelligentCoder
         /// <param name="context"></param>
         public void Initialize(GeneratorInitializationContext context)
         {
-            context.RegisterForPostInitialization((i) => i.AddSource("AsyncMethodAttribute.g.cs", m_asyncMethodAttribute));
+            context.RegisterForPostInitialization((i) => i.AddSource("AsyncMethodAttribute.g.cs", this.m_asyncMethodAttribute));
 
             context.RegisterForSyntaxNotifications(() => new AsyncMethodReceiver());
         }
@@ -101,7 +100,7 @@ namespace IntelligentCoder
                     .Select(i => new AsyncMethodCodeBuilder(i, context.Compilation))
                     .Distinct();
                 //Debugger.Launch();
-                List<string> strings= new List<string>();  
+                List<string> strings = new List<string>();
                 foreach (var builder in builders)
                 {
                     if (!strings.Contains(builder.GetFileName()))

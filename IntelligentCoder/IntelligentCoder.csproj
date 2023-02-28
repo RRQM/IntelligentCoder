@@ -5,7 +5,7 @@
 		<ApplicationIcon>logo.ico</ApplicationIcon>
 		<DevelopmentDependency>true</DevelopmentDependency>
 		<AssemblyOriginatorKeyFile>D:\MyStore\13_Doc\Keys\IntelligentCoder.snk</AssemblyOriginatorKeyFile>
-		<Version>1.0.11</Version>
+		<Version>1.0.12</Version>
 		<NoPackageAnalysis>true</NoPackageAnalysis>
 		<Company>若汝棋茗</Company>
 		<Copyright>Copyright © 2023 若汝棋茗</Copyright>

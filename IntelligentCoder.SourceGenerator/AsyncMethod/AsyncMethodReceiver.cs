@@ -54,7 +54,7 @@ namespace IntelligentCoder
                 yield break;
             }
 
-            foreach (var typeDeclarationSyntax in TypeDeclarationSyntaxs)
+            foreach (var typeDeclarationSyntax in this.TypeDeclarationSyntaxs)
             {
                 var namedTypeSymbol = compilation.GetSemanticModel(typeDeclarationSyntax.SyntaxTree).GetDeclaredSymbol(typeDeclarationSyntax);
                 if (namedTypeSymbol != null && IsAsyncMethodPoster(namedTypeSymbol))
@@ -72,7 +72,7 @@ namespace IntelligentCoder
         {
             if (syntaxNode is TypeDeclarationSyntax symbol)
             {
-                TypeDeclarationSyntaxs.Add(symbol);
+                this.TypeDeclarationSyntaxs.Add(symbol);
             }
         }
     }
