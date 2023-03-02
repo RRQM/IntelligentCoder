@@ -188,6 +188,10 @@ namespace IntelligentCoder
 
         private string BuildExtensionMethod(INamedTypeSymbol namedTypeSymbol, IMethodSymbol method)
         {
+            if (method.IsStatic)
+            {
+                return string.Empty;
+            }
             //Debugger.Launch();
 
             var attributeData = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.AsyncMethodAttributeTypeName);
@@ -385,8 +389,16 @@ namespace IntelligentCoder
                 {
                     if (!this.NewExists(method))
                     {
-                        var methodCode = this.BuildNormalMethod(method);
-                        builder.AppendLine(methodCode);
+                        if (method.IsStatic)
+                        {
+                            var methodCode = this.BuildStaticMethod(this.m_namedTypeSymbol,method);
+                            builder.AppendLine(methodCode);
+                        }
+                        else
+                        {
+                            var methodCode = this.BuildNormalMethod(method);
+                            builder.AppendLine(methodCode);
+                        }
                     }
                 }
             }
@@ -560,6 +572,10 @@ namespace IntelligentCoder
 
         private string BuildStaticMethod(INamedTypeSymbol namedTypeSymbol, IMethodSymbol method)
         {
+            if (!method.IsStatic)
+            {
+                return string.Empty;
+            }
             //Debugger.Launch();
 
             var attributeData = method.GetAttributes().FirstOrDefault(a => a.AttributeClass.ToDisplayString() == AsyncMethodReceiver.AsyncMethodAttributeTypeName);
