@@ -100,7 +100,7 @@ namespace IntelligentCoder
                     .Select(i => new AsyncMethodCodeBuilder(i, context.Compilation))
                     .Distinct();
                 //Debugger.Launch();
-                List<string> strings = new List<string>();
+                var strings = new List<string>();
                 foreach (var builder in builders)
                 {
                     if (!strings.Contains(builder.GetFileName()))

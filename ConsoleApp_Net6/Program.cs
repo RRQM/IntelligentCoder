@@ -7,7 +7,7 @@ namespace ConsoleApp_Net6
     {
         static void Main(string[] args)
         {
-            TestClass1 testClass1 = new TestClass1();
+            var testClass1 = new TestClass1();
             testClass1.Add1();
             testClass1.Add1Async();
             testClass1.Add2();
@@ -15,15 +15,15 @@ namespace ConsoleApp_Net6
             testClass1.Add3();
             testClass1.MyAdd3Async();
 
-            TestClass2 testClass2 = new TestClass2();
+            var testClass2 = new TestClass2();
             testClass2.Add(10, 20);
 
-            TestInterfaceImp testInterfaceImp = new TestInterfaceImp();
+            var testInterfaceImp = new TestInterfaceImp();
             testInterfaceImp.Add2Async<Program>(10, 20);
 
             TestStaticClassExtension.AddAsync(10, 20);
 
-            string path = "path";
+            var path = "path";
             FileAsync.CreateAsync(path);
             FileAsync.OpenAsync(path, FileMode.Open);
         }
@@ -45,6 +45,11 @@ namespace ConsoleApp_Net6
 
         [AsyncMethod(Template = "My{0}Async")]//测试模板生成
         public void Add3()
+        {
+
+        }
+
+        public void Add4(Span<byte> bytes)
         {
 
         }

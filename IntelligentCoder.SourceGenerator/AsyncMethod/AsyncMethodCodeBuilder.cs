@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -103,7 +104,7 @@ namespace IntelligentCoder
         /// <returns></returns>
         public SourceText ToSourceText()
         {
-            string TextFormat = CSharpSyntaxTree.ParseText(this.ToString(), new CSharpParseOptions(LanguageVersion.CSharp8)).GetRoot().NormalizeWhitespace().SyntaxTree.GetText().ToString();
+            var TextFormat = CSharpSyntaxTree.ParseText(this.ToString(), new CSharpParseOptions(LanguageVersion.CSharp8)).GetRoot().NormalizeWhitespace().SyntaxTree.GetText().ToString();
             return SourceText.From(TextFormat, Encoding.UTF8);
         }
 
@@ -200,10 +201,10 @@ namespace IntelligentCoder
                 namedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
             }
 
-            string methodName = this.GetMethodName(method, namedArguments);
-            string returnType = this.GetReturnType(method, namedArguments);
-            string accessibility = this.GetAccessibility(method);
-            string precompile = this.GetPrecompile(method, namedArguments);
+            var methodName = this.GetMethodName(method, namedArguments);
+            var returnType = this.GetReturnType(method, namedArguments);
+            var accessibility = this.GetAccessibility(method);
+            var precompile = this.GetPrecompile(method, namedArguments);
             var parameters = method.Parameters;
             //生成开始
             var codeString = new StringBuilder();
@@ -350,7 +351,7 @@ namespace IntelligentCoder
             builder.AppendLine("{");
             //Debugger.Launch();
 
-            if (this.m_namedArguments.TryGetValue("Target", out TypedConstant typedConstant))
+            if (this.m_namedArguments.TryGetValue("Target", out var typedConstant))
             {
                 if (typedConstant.Value is INamedTypeSymbol namedTypeSymbol)
                 {
@@ -409,10 +410,10 @@ namespace IntelligentCoder
             }
             //Debugger.Launch();
 
-            string methodName = this.GetMethodName(method, namedArguments);
-            string returnType = this.GetReturnType(method, namedArguments);
-            string accessibility = this.GetAccessibility(method);
-            string precompile = this.GetPrecompile(method, namedArguments);
+            var methodName = this.GetMethodName(method, namedArguments);
+            var returnType = this.GetReturnType(method, namedArguments);
+            var accessibility = this.GetAccessibility(method);
+            var precompile = this.GetPrecompile(method, namedArguments);
             accessibility = accessibility == "public" ? string.Empty : accessibility;
             var parameters = method.Parameters;
 
@@ -476,11 +477,11 @@ namespace IntelligentCoder
                 namedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
             }
 
-            string methodName = this.GetMethodName(method, namedArguments);
-            string returnType = this.GetReturnType(method, namedArguments);
-            string accessibility = this.GetAccessibility(method);
-            string keyword = this.GetKeyword(method);
-            string precompile = this.GetPrecompile(method, namedArguments);
+            var methodName = this.GetMethodName(method, namedArguments);
+            var returnType = this.GetReturnType(method, namedArguments);
+            var accessibility = this.GetAccessibility(method);
+            var keyword = this.GetKeyword(method);
+            var precompile = this.GetPrecompile(method, namedArguments);
             var parameters = method.Parameters;
             //生成开始
             var codeString = new StringBuilder();
@@ -572,10 +573,10 @@ namespace IntelligentCoder
                 namedArguments = attributeData.NamedArguments.ToDictionary(a => a.Key, a => a.Value);
             }
 
-            string methodName = this.GetMethodName(method, namedArguments);
-            string returnType = this.GetReturnType(method, namedArguments);
-            string accessibility = this.GetAccessibility(method);
-            string precompile = this.GetPrecompile(method, namedArguments);
+            var methodName = this.GetMethodName(method, namedArguments);
+            var returnType = this.GetReturnType(method, namedArguments);
+            var accessibility = this.GetAccessibility(method);
+            var precompile = this.GetPrecompile(method, namedArguments);
             var parameters = method.Parameters;
             //生成开始
             var codeString = new StringBuilder();
@@ -655,8 +656,8 @@ namespace IntelligentCoder
 
         private List<IMethodSymbol> FindAllMethods(INamedTypeSymbol namedTypeSymbol)
         {
-            int deep = this.Deep();
-            List<IMethodSymbol> methods = new List<IMethodSymbol>();
+            var deep = this.Deep();
+            var methods = new List<IMethodSymbol>();
             this.FindMethods(namedTypeSymbol, methods, ref deep);
             return methods;
         }
@@ -673,7 +674,7 @@ namespace IntelligentCoder
                        return false;
                    }
 
-                   string id = this.GetMethodId(a);
+                   var id = this.GetMethodId(a);
                    if (this.m_allMethodIds.Contains(id))
                    {
                        return false;
@@ -758,6 +759,10 @@ namespace IntelligentCoder
                        {
                            return false;
                        }
+                       if (item.Type.IsRefLikeType)
+                       {
+                           return false;
+                       }
                        if (!this.IsPublic(item.Type))
                        {
                            if (!SymbolEqualityComparer.Default.Equals(item.Type.ContainingAssembly, this.Assembly))
@@ -836,7 +841,7 @@ namespace IntelligentCoder
 
         private string GetComments(IMethodSymbol method)
         {
-            string cref = method.ToDisplayString().Replace("<", "{").Replace(">", "}");
+            var cref = method.ToDisplayString().Replace("<", "{").Replace(">", "}");
             return $"/// <inheritdoc cref=\"{cref}\"/>";
         }
 
@@ -893,7 +898,7 @@ namespace IntelligentCoder
 
         private string GetMethodId(IMethodSymbol method)
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             stringBuilder.Append(method.Name);
             foreach (var item in method.Parameters)
             {
@@ -958,7 +963,7 @@ namespace IntelligentCoder
 
         private string GetNamespace()
         {
-            int r = this.m_namedTypeSymbol.ToDisplayString().LastIndexOf('.');
+            var r = this.m_namedTypeSymbol.ToDisplayString().LastIndexOf('.');
             if (r > 0)
             {
                 return this.m_namedTypeSymbol.ToDisplayString().Substring(0, r);
@@ -968,7 +973,7 @@ namespace IntelligentCoder
 
         private string GetNewMethodId(IMethodSymbol method)
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             stringBuilder.Append(this.GetMethodName(method));
             foreach (var item in method.Parameters)
             {
